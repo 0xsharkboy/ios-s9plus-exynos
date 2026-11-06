@@ -2,6 +2,21 @@
 
 Samsung **SM-G965F / star2lte / Exynos 9810 / Mali-G72**, using the Scion fork of HakiOS and an iOS 16.5 userspace supplied by the user.
 
+## Highlights of this S9+ build
+
+Device-specific features and improvements over this port's earlier S9+ bring-up builds:
+
+- **Installed on flash:** BOOT and iOS SYSTEM reside on the phone's UFS, and the loader reads SYSTEM directly from flash. A host upload is not required for each boot. Writable iOS data remains in RAM, and the current 600-second return-to-recovery timer is preserved.
+- **Hardware-accelerated GLES on Mali-G72:** actual GPU rendering through Mesa/Panfrost, with local mapping, cache and advisory changes. This is the installed graphics path; Metal-to-Vulkan remains separate WIP.
+- **Improved UI smoothness and presentation:** smoother interaction than the initial bring-up, based on on-device feedback, with display flicker and scrolling tearing resolved in the reported tests. Heavy SpringBoard widget/blur scenes still stall; sustained 60 FPS is not established.
+- **UI adapted to the full S9+ panel:** a 1188 × 2442 render canvas scaled through the Exynos display path, adjusted proportions and status-bar insets for the curved edges. This is a scaled render resolution, not native-resolution rendering.
+- **Touch and physical buttons:** working on-device input, including Bixby mapped to Home. Touch latency and keyboard/emoji defects remain under investigation.
+- **Battery and charging indication:** battery level and charger state have been displayed in iOS.
+- **Broadcom Wi-Fi bring-up:** association, DHCP, gateway traffic, DNS and SSH have been verified in development sessions. Reliable reconnection across boots remains unfinished.
+- **Six CPUs enabled:** the installed configuration brings up six cores; using every CPU and all physical RAM remains unfinished.
+- **TWRP-preserving, verified installation:** the release installer writes BOOT only, checks the matching SYSTEM and firmware, verifies the complete BOOT readback and confirms RECOVERY is unchanged.
+- **Private device identity stays local:** the public BOOT template has its MAC field cleared. Installation supplies the target phone's own original MAC locally; no maintainer Wi-Fi password, personal MAC, saved network profile or partition backup is distributed.
+
 **The default release carries the OpenGL ES/Panfrost build verified in the maintainer's phone flash, with each phone's own Wi-Fi MAC inserted locally. Metal → Vulkan is WIP and is not the default flash target.** This is a research build, with substantial animation and touch latency; sustained 60 FPS, working 3D WebGL and daily-phone readiness are not established.
 
 ## Installed build
