@@ -1,0 +1,67 @@
+# Changelog
+
+What changed, newest first. One line a change: the part of the system, then what is different for whoever runs it.
+The commits say how; `docs/` says why.
+
+## Sources
+
+What a build is made of, and where each part is fetched from. Nothing of these is kept in the repositories but the
+changes to it; the scripts named fetch the release and put the changes on.
+
+- the kernel: Apple's [XNU](https://github.com/apple-oss-distributions/xnu), tag `xnu-8796.121.2` (the release the Darwin 16.5 user space was built from) -- `xnu/apply.sh`, the changes in `xnu/hakios.patch` and `xnu/files/`, the drivers in `drivers/`
+- the data volume: Apple's [HFS Plus](https://github.com/apple-oss-distributions/hfs), tag `hfs-627.100.6` -- `xnu/hfs/hfs.sh`, the changes in `xnu/hfs/hfs.patch`
+- the boot: [U-Boot](https://source.denx.de/u-boot/u-boot) `v2026.07` -- `hakios-uefi/u-boot/apply.sh`, the changes in `hakios-uefi/u-boot/hakios.patch` and `files/`; the device's part in `hakios-sm7325/u-boot/`
+- the UEFI (the other way to start): [Project Silicium's Mu-Silicium](https://github.com/Project-Silicium/Mu-Silicium) at `e51cd877e31c` -- `hakios-uefi/apply.sh`
+- the GPU's OpenGL ES: [Mesa](https://archive.mesa3d.org/) 25.0.7, the freedreno driver for the Adreno -- `tools/mk-mesa.sh`, the changes in `tools/mesa/`
+- the build tools: Apple's [libdispatch](https://github.com/apple-oss-distributions/libdispatch), [libpthread](https://github.com/apple-oss-distributions/libpthread) and [AvailabilityVersions](https://github.com/apple-oss-distributions/AvailabilityVersions), [bootstrap_cmds](https://github.com/markmentovai/bootstrap_cmds), [unifdef](https://github.com/fanf2/unifdef), the [macOS 13.3 SDK](https://github.com/joseluisq/macosx-sdks) and the [iPhoneOS 16.5 SDK](https://github.com/theos/sdks) -- `xnu-deps/setup.sh`
+- not fetched by anything here: the Darwin 16.5 user space, which you lay out from your own IPSW (`sysimage/`), and the phone's own firmware, pulled from its Android (`fw-*`)
+
+## 2026-11-03
+
+- Galaxy S9: Safari's pages load with the M3s running: what a JIT writes (WebKit's CSS selector compiler, JavaScriptCore) is cleaned from the core's data cache before the core runs it. iOS's `sys_icache_invalidate()` never cleans (Apple's cores and the A55s fetch from their L1 data cache; the M3s, LoUU 1, do not), so every WebContent process died with SIGSEGV at its first page; now EL0's cache maintenance by VA traps and the kernel does it with a DC CVAC first (patch 1511, `ucache_trap`, on with `m3_prep=3`; `machdep.hakios_ucache_ops` counts it)
+- Galaxy S9: what has been seen working is on by default: the S9's configuration (`devices/starlte/configs/starlte.config`) sets six cores, the kernel's own UFS driver with /private/var in USERDATA, touch, keys, battery, USB console, GPU and both governors, brightness, zero-copy display, the RTC, the front camera, the speakers and Wi-Fi, and `devices/starlte/mkimage.sh` puts them on every image; a run's own arguments go over them by name (`tools/hakios-config.py args --with`; `name=` drops one, `-n` none). No other device changes
+- Galaxy S9: the display's `fb_zc` pool moves to 0xDEC00000-0xE18FFFFF (three 12 MB slots): it ran from 0xD7000000 to `secure_camera`, over the camera's frames, UFS's own-mode memory and Wi-Fi's optional DMA window. The S9's physical carve-outs are one table, `sys/hakios.exynos9810_mem.h`, checked at build time for overlaps; the display logs its ranges at probe
+- drivers: one `hakios_physmap_wc()` (`sys/hakios.physmap.h`) maps physical memory XNU does not manage, write-combined, for the camera and UFS's own mode, in place of a copy each; the camera's and the keys' log lines start `exynos_camera:` and `exynos_keys:`
+
+## 2026-11-02
+
+- Galaxy S9: a run's end restarts into TWRP again: the loader writes INFORM2/3 right before it restarts the phone with the PMU's software reset (SWRESET) instead of UEFI's ResetSystem, feeds the watchdog while it shows the kernel's log on the screen (it bit there before, and its reset clears INFORM3: the phone came back into BOOT), and keeps the kernel's log in the RAM log through the last write; the USB console's `return` runs off the busy thread-call group and forces the return after 15 s
+- Galaxy S9: six cores, the four Exynos M3s next to A55s 2 and 3 (`cpus=6 bootcpu=2 m3_prep=3 pan=0`): the big cluster's PMU fields written before CPU_ON (`m3_prep`), PAN off on a system with ARMv8.0 cores (`pan`), and user space told only the ARMv8.0 features every core has (`isa_floor`, on with `m3_prep=3`)
+- Galaxy S9: touch polled at priority 92 (`s6sy761_pri`), so that a finger's moves no longer come in bursts under load; `s6sy761_trace=N` times the first N events
+- Galaxy S9: the front camera, stage 1: its supplies and model ID (`cam_s9=N`, off by default)
+- diagnostics: `systrace`'s usertrap, userabort, top and ustacks lines also go to the loader's log (the USB log, esslog)
+
+## 2026-11-01
+
+- graphics: the wallpaper on a slow phone (the Galaxy S9, two cores): once the start-up rush is over, PosterBoard is restarted if launchd killed its posters at the 5 s check-in deadline (`poster_retry`, in the default job list; `poster_retry=0` turns it off)
+- diagnostics: the layer dump (`com.hakios.layers`) also lists the CoreAnimation contexts that have no window, so chronod, where the home screen's widgets are drawn, can be asked what a blank widget holds; `RC_JOBS=rc.jobs.widgets` is the recipe
+
+## 2026-10-30
+
+- repositories: `main` is the branch of `hakios-xnu-kernel` -- what was `hakios` and then `u-boot`; `hakios` is gone, `git clone` needs no `-b`
+- site: a Changelog page, this file
+- site: the commands to start with clone the public repository (`hakios-xnu-kernel`); `oosexgang/hakios` is private and cloned for nobody
+- site: the documentation synced, with the guide to installing beside Android and the U-Boot page in the table of contents
+
+## 2026-10-29
+
+- u-boot: HakiOS's own U-Boot, started by the phone's bootloader from RAM; it starts the loader and the kernel from memory, nothing of the vendor's firmware in between
+- u-boot: the loader's fastboot works under U-Boot (USB 2.0 without the link power states that dropped the cable after 3 s, endpoints and packet sizes as the loader asks, DWC3 transfers started when queued)
+- u-boot: every download and every step says what it does on the screen, tagged `[oosexgang]`
+- u-boot: `hakios sum` checks a flashed partition from the phone itself; `hakios reboot bootloader` gets to fastboot
+- install: HakiOS beside Android: U-Boot in `boot_a`, Android in slot b untouched, a menu at every start (Android after 10 s, HakiOS (Darwin), fastboot, U-Boot's shell)
+- install: choosing Android marks HakiOS's slot unbootable and lets the bootloader switch; U-Boot never changes which slot is active (changing it by hand once left every image refused with "Device Error")
+- install: `tools/userdata-carve.py --wipe` makes `darwin` at the end of userdata; `tools/sparse-split.py` cuts an 8 GB image into pieces Windows fastboot can send
+- storage: the data volume is HFS Plus in `darwin` after the system, about 12 GB, journaled, kept between starts; before, `/private/var` was a memory volume shown as 1 GB and empty at every start
+- storage: HFS Plus built into the kernel; Apple's sources are fetched at `xnu/apply.sh`, only this port's changes are kept
+- storage: the data volume's writes go straight to the flash and the cache is flushed when the journal asks (a flush and a read back after every write made the system crawl)
+- storage: the loader takes any phone's `darwin` (name, type, unit, at least 20 GiB), not only the first phone's place and identifier
+- storage: `tools/mkdatavol.py` makes the empty volume as a 50 KB image that leaves the system volume alone
+- graphics: the installed image draws with the GPU (Mesa, `GL=1`): smooth, and the wallpaper drawn
+- graphics: the system's other services and the processes that draw parts of the interface are in the image (`REST=1`): the wallpaper and the applications that need them
+- graphics: frames at 120 a second (`fb_hz=120`), and `fb_measure=1` writes to the log how often the panel itself refreshes
+- loader: nothing printed over the system's screen while it runs; the log still takes every line
+- loader: its log written under U-Boot too; a download the computer gave up on no longer hangs it
+- wifi: the Wi-Fi controller is found where the system looks for its address, so registering applications no longer waits 5 s for each (found by the ios-sapphire port)
+- tree: Darwin, not iOS, in the sources, the scripts, the file names and the documentation; no file of Apple's in the repositories
+- docs: installing beside Android, step by step (`docs/dual-boot.md`, in Russian too), and the U-Boot page with everything as it was done and checked

@@ -1,0 +1,271 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 639baeb..418ee7a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -104,6 +104,11 @@ if (APPLE)
+ elseif(QNX)
+     # TODO(jsimonot): fix build error
+     # add_compile_definitions(VK_USE_PLATFORM_SCREEN_QNX)
++elseif(ANDROID)
++    # Android (the NDK): EGL on ANativeWindow, no X11. The AOSP headers Vulkan's Android
++    # path wants (cutils/native_handle.h) come from third_party/android, after the NDK's own.
++    add_compile_definitions(VK_USE_PLATFORM_ANDROID_KHR)
++    add_compile_options(-idirafter ${CMAKE_CURRENT_SOURCE_DIR}/third_party/android/include)
+ elseif(UNIX)
+     # Use X11 version of EGL platform specific definitions.
+     add_compile_definitions(USE_X11)
+diff --git a/common/base/CMakeLists.txt b/common/base/CMakeLists.txt
+index 090901f..60e40a4 100644
+--- a/common/base/CMakeLists.txt
++++ b/common/base/CMakeLists.txt
+@@ -102,7 +102,7 @@ target_compile_definitions(gfxstream_common_base PRIVATE)
+ if (WIN32)
+     set(gfxstream_common_base_platform_deps
+         Shlwapi)
+-elseif (QNX)
++elseif (QNX OR ANDROID)
+     set(gfxstream_common_base_platform_deps
+         dl)
+ elseif(LINUX)
+diff --git a/host/gl/glestranslator/egl/CMakeLists.txt b/host/gl/glestranslator/egl/CMakeLists.txt
+index 103b18e..7d0ba8e 100644
+--- a/host/gl/glestranslator/egl/CMakeLists.txt
++++ b/host/gl/glestranslator/egl/CMakeLists.txt
+@@ -15,6 +15,7 @@
+ # Use EGL platform specific definitions.
+ if (APPLE)
+     add_compile_definitions(__APPLE__)
++elseif(ANDROID)
+ elseif(UNIX)
+     add_compile_definitions(USE_X11)
+ endif()
+@@ -59,7 +60,7 @@ elseif (APPLE)
+         EGL_translator_static
+         ${egl-translator-common-sources}
+         ${egl-translator-darwin-sources})
+-elseif (QNX)
++elseif (QNX OR ANDROID)
+     add_library(
+         EGL_translator_static
+         ${egl-translator-common-sources}
+@@ -98,6 +99,8 @@ elseif (APPLE)
+     target_link_libraries(EGL_translator_static PUBLIC "-framework AppKit -framework IOSurface")
+ elseif (QNX)
+     target_link_libraries(EGL_translator_static PUBLIC "-lscreen -lregex -lEGL -lGLESv2")
++elseif (ANDROID)
++    target_link_libraries(EGL_translator_static PUBLIC "-ldl")
+ else()
+     target_link_libraries(EGL_translator_static PUBLIC "-ldl -lpthread")
+ endif()
+diff --git a/host/native_window/CMakeLists.txt b/host/native_window/CMakeLists.txt
+index c31cab6..7ad849c 100644
+--- a/host/native_window/CMakeLists.txt
++++ b/host/native_window/CMakeLists.txt
+@@ -9,6 +9,9 @@ elseif (WIN32)
+ elseif (QNX)
+     set(gfxstream_host_native_window_platform_sources
+         native_sub_window_qnx.cpp)
++elseif (ANDROID)
++    set(gfxstream_host_native_window_platform_sources
++        native_sub_window_android.cpp)
+ else()
+     set(gfxstream_host_native_window_platform_sources
+         native_sub_window_x11.cpp)
+@@ -33,3 +36,7 @@ target_link_libraries(
+     gfxstream_backend_headers
+     gfxstream_host_decoder_common
+     )
++
++if (ANDROID)
++    target_link_libraries(gfxstream_host_native_window PUBLIC nativewindow log)
++endif()
+diff --git a/host/native_window/native_sub_window_android.cpp b/host/native_window/native_sub_window_android.cpp
+index cafb1fe..6b4294e 100644
+--- a/host/native_window/native_sub_window_android.cpp
++++ b/host/native_window/native_sub_window_android.cpp
+@@ -32,8 +32,12 @@ void destroySubWindow(EGLNativeWindowType win) { ANativeWindow_release(win); }
+ 
+ int moveSubWindow(FBNativeWindowType p_parent_window, EGLNativeWindowType p_sub_window, int x,
+                   int y, int width, int height, float dpr) {
+-    // moving windows not supported in Android; we can't create an actual sub window
+-    return true;
++    // moving windows not supported in Android; we can't create an actual sub window. But its size
++    // follows (Scion: a SurfaceView laid out anew): the buffers were made at the size the window had
++    // when the subwindow was, and the compositor scaled them into the new one -- the picture
++    // squashed. The EGL surface takes the new size at its next buffer.
++    return ANativeWindow_setBuffersGeometry(p_sub_window, width, height,
++                                            AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM) == 0;
+ }
+ 
+ void* getNativeDisplay() {
+diff --git a/host/render_control.cpp b/host/render_control.cpp
+index 9b95892..3d1b22a 100644
+--- a/host/render_control.cpp
++++ b/host/render_control.cpp
+@@ -22,6 +22,15 @@
+ #include <atomic>
+ #include <limits>
+ #include <memory>
++#ifdef __ANDROID__
++#include <android/log.h>
++#include <sys/system_properties.h>
++
++#include <chrono>
++#include <condition_variable>
++#include <future>
++#include <mutex>
++#endif
+ 
+ #include "frame_buffer.h"
+ #include "host/gl/gles_version_detector.h"
+@@ -947,6 +956,74 @@ static EGLint rcMakeCurrent(uint32_t context,
+     return (ret ? EGL_TRUE : EGL_FALSE);
+ }
+ 
++#ifdef __ANDROID__
++// Scion (hackios-xnu-kernel tools/gfxstream/android-host.patch): the guest's frames are posted from
++// the one render thread that runs its whole stream, and FrameBuffer::post holds that thread until the
++// post worker has drawn the frame into the app's window and swapped -- no GL of the next frame is
++// run meanwhile. Here the post is handed to the post worker and the thread goes on (with
++// debug.scion.scgpu.post=sync, as before); it waits only for the post before (one in flight: the guest draws the next frame
++// into another of the display's surfaces, and the one after that into this one again only after it
++// has been shown). Every 5 s a line of how long the thread spent in rcFBPost (logcat tag scgpu).
++namespace {
++
++struct ScionPosts {
++    std::mutex lock;
++    std::condition_variable done;
++    int inFlight = 0;
++    int async = -1;
++    uint64_t posts = 0, us = 0, maxUs = 0, at = 0;
++};
++ScionPosts sScionPosts;
++
++uint64_t scionNowUs() {
++    return (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
++               std::chrono::steady_clock::now().time_since_epoch()).count();
++}
++
++void scionPost(FrameBuffer* fb, uint32_t colorBuffer) {
++    ScionPosts& s = sScionPosts;
++    if (s.async < 0) {
++        char v[PROP_VALUE_MAX] = "";
++        __system_property_get("debug.scion.scgpu.post", v);
++        s.async = strcmp(v, "sync") != 0;
++        __android_log_print(ANDROID_LOG_INFO, "scgpu", "SCGPU: frames are posted %s (debug.scion.scgpu.post)",
++                            s.async ? "asynchronously, one in flight" : "synchronously");
++    }
++    uint64_t t0 = scionNowUs();
++    if (s.async) {
++        {
++            std::unique_lock<std::mutex> l(s.lock);
++            s.done.wait(l, [] { return sScionPosts.inFlight == 0; });
++            s.inFlight++;
++        }
++        fb->postWithCallback(colorBuffer, [](std::shared_future<void> gpu) {
++            gpu.wait();
++            std::lock_guard<std::mutex> l(sScionPosts.lock);
++            sScionPosts.inFlight--;
++            sScionPosts.done.notify_all();
++        });
++    } else {
++        fb->post(colorBuffer);
++    }
++    uint64_t t1 = scionNowUs(), took = t1 - t0;
++    s.posts++;
++    s.us += took;
++    s.maxUs = took > s.maxUs ? took : s.maxUs;
++    if (s.at == 0) {
++        s.at = t1;
++    } else if (t1 - s.at >= 5000000) {
++        __android_log_print(ANDROID_LOG_INFO, "scgpu", "SCGPU: %.1f posts/s; the render thread spent %llu us in each "
++                            "on average, %llu at most (%s)", s.posts * 1e6 / (double)(t1 - s.at),
++                            (unsigned long long)(s.us / s.posts), (unsigned long long)s.maxUs,
++                            s.async ? "async" : "sync");
++        s.posts = s.us = s.maxUs = 0;
++        s.at = t1;
++    }
++}
++
++}  // namespace
++#endif
++
+ static void rcFBPost(uint32_t colorBuffer)
+ {
+     FrameBuffer* fb = FrameBuffer::getFB();
+@@ -954,7 +1031,11 @@ static void rcFBPost(uint32_t colorBuffer)
+         return;
+     }
+ 
++#ifdef __ANDROID__
++    scionPost(fb, colorBuffer);
++#else
+     fb->post(colorBuffer);
++#endif
+ }
+ 
+ static void rcFBSetSwapInterval(EGLint interval)
+diff --git a/host/virtio_gpu_frontend.cpp b/host/virtio_gpu_frontend.cpp
+index 4c5c3e1..7d54575 100644
+--- a/host/virtio_gpu_frontend.cpp
++++ b/host/virtio_gpu_frontend.cpp
+@@ -1021,12 +1021,22 @@ void VirtioGpuFrontend::setupWindow(void* nativeWindowHandle, int32_t windowX, i
+         return;
+     }
+ 
++    // An app's window comes and goes (Scion: its SurfaceView is destroyed when the activity
++    // stops): NULL takes the subwindow away before the native window is released, and another
++    // window replaces the one there was instead of being ignored.
++    if (nativeWindowHandle == nullptr) {
++        mRenderer->destroyOpenGLSubwindow();
++        mSubWindowHandle = nullptr;
++        return;
++    }
++    const bool replace = mSubWindowHandle != nullptr && mSubWindowHandle != nativeWindowHandle;
++    mSubWindowHandle = nativeWindowHandle;
+     bool success = mRenderer->showOpenGLSubwindow((FBNativeWindowType)(uintptr_t)nativeWindowHandle,
+                                                   windowX, windowY, windowWidth, windowHeight,
+                                                   framebufferWidth, framebufferHeight,
+                                                   /*dpr=*/1.0f,
+                                                   /*rotation=*/0,
+-                                                  /*deleteExisting=*/false,
++                                                  /*deleteExisting=*/replace,
+                                                   /*hideWindow=*/false);
+     if (!success) {
+         GFXSTREAM_ERROR("Failed to setup window: show subwindow failed.");
+diff --git a/host/virtio_gpu_frontend.h b/host/virtio_gpu_frontend.h
+index 0431560..71949f8 100644
+--- a/host/virtio_gpu_frontend.h
++++ b/host/virtio_gpu_frontend.h
+@@ -138,6 +138,7 @@ class VirtioGpuFrontend {
+ #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+ 
+     RendererPtr mRenderer;
++    void* mSubWindowHandle = nullptr;  // the native window setupWindow last showed the subwindow in
+     void* mCookie = nullptr;
+     gfxstream::host::FeatureSet mFeatures;
+     stream_renderer_fence_callback mFenceCallback;
+diff --git a/host/vulkan/CMakeLists.txt b/host/vulkan/CMakeLists.txt
+index d98f3db..a8440c2 100644
+--- a/host/vulkan/CMakeLists.txt
++++ b/host/vulkan/CMakeLists.txt
+@@ -83,6 +83,7 @@ elseif (APPLE)
+ target_compile_definitions(gfxstream-vulkan-server PRIVATE -DVK_USE_PLATFORM_METAL_EXT -DVK_USE_PLATFORM_MACOS_MVK)
+ elseif (QNX)
+ target_compile_definitions(gfxstream-vulkan-server PRIVATE -DVK_USE_PLATFORM_SCREEN_QNX)
++elseif (ANDROID)
+ elseif (UNIX)
+ target_compile_definitions(gfxstream-vulkan-server PRIVATE -DVK_USE_PLATFORM_XCB_KHR)
+ endif()
+diff --git a/host/vulkan/cereal/CMakeLists.txt b/host/vulkan/cereal/CMakeLists.txt
+index 136076a..7ff82c5 100644
+--- a/host/vulkan/cereal/CMakeLists.txt
++++ b/host/vulkan/cereal/CMakeLists.txt
+@@ -25,6 +25,7 @@ if (WIN32)
+     target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_USE_PLATFORM_WIN32_KHR)
+ elseif (APPLE)
+     target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_USE_PLATFORM_MACOS_MVK -DVK_USE_PLATFORM_METAL_EXT)
++elseif(ANDROID)
+ elseif(UNIX)
+     target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_USE_PLATFORM_XCB_KHR)
+ endif()

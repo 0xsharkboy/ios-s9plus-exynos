@@ -1,0 +1,19 @@
+Galaxy S9+ Exynos integration and publication
+
+This publication builds on Scion-Project's fork of HakiOS and the upstream
+components identified in SOURCES.md. Original source notices and licenses are
+retained under core/. Kernel-derived code remains under its applicable APSL
+and component licenses; MIT does not relicense third-party material.
+
+The installed GLES release and Metal/Vulkan work in progress are separate.
+No affiliation with Apple, Samsung, Scion-Project, UniXNU, Mesa or Project
+Silicium is asserted. Their names identify the original work and hardware.
+
+No Apple SYSTEM image, Apple restore archive, personal partition backup,
+Wi-Fi password, saved network profile, personal MAC or SSH private key is included.
+The BOOT template clears the original MAC slot; installers supply their own
+device identity locally without publishing it.
+
+Release BOOT prefixes contain the hardware support/firmware already required
+by the tested Scion device image. Preserve the device/firmware and UEFI
+attribution and qualifications in core/NOTICE and SOURCES.md.

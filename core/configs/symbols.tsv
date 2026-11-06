@@ -1,0 +1,505 @@
+ABOX	arg	abox	Audio and battery	k	hakios.exynos_abox.c	the first N of ABOX's eight steps (1 only looks, 7 plays a tone, 8 serves iOS); 0 or none: left alone
+ABOX_BCLK_ON	arg	abox_bclk_on	Audio and battery	k	hakios.exynos_abox.c	ABOX never gates UAIF1's BCLK (QCHANNEL_DISABLE bit 3), as Samsung does for UAIF0 while it plays
+ABOX_BURST	arg	abox_burst	Audio and battery	k	hakios.exynos_abox.c	RDMA0's CTRL0 BURST_LEN [22:19], 1 to 15 (8, set only when it reads 0; given, set anyway; 0: left)
+ABOX_DVFS	arg	abox_dvfs	Audio and battery	k	hakios.exynos_abox.c	ACPM's AUD DVFS domain (index 9) set to this before step 3 (none: left as found, only read)
+ABOX_GAIN	arg	abox_gain	Audio and battery	k	hakios.exynos_abox.c	eighths of a dB of gain before the speakers' guard, 0 to 96 (0)
+ABOX_MIC	arg	abox_mic	Audio and battery	k	hakios.exynos_abox.c	with abox=8: /dev/hakios-mic, the codec's main microphone for iOS, recorded through UAIF0 and WDMA1
+ABOX_MMU_OFF	arg	abox_mmu_off	Audio and battery	k	hakios.exynos_abox.c	refuse a translating SysMMU instead of switching it off (1: CTRL 0, as found needed on the S9)
+ABOX_RDMA_CTRL0	arg	abox_rdma_ctrl0	Audio and battery	k	hakios.exynos_abox.c	bits of RDMA0's CTRL0 besides ENABLE, to try a format there (none: as it reads after reset)
+ABOX_RDMA_CTRL1	arg	abox_rdma_ctrl1	Audio and battery	k	hakios.exynos_abox.c	RDMA0's CTRL1 (none: as it reads after reset)
+ABOX_RDMA_FMT	arg	abox_rdma_fmt	Audio and battery	k	hakios.exynos_abox.c	leave RDMA0 CTRL0's FORMAT/FUNC/BUF_UPDATE and SBANK_LIMIT as they read (1: calliope's values)
+ABOX_RING_PA	hex	abox_ring_pa	Audio and battery	k	hakios.exynos_abox.c	the ring at this physical address of abox_rmem (0xFB200000 + 40 MB) instead of the kernel's memory
+ABOX_ROUTE	arg	abox_route	Audio and battery	k	hakios.exynos_abox.c	UAIF1 from SIFS0, the mixer (SPUS_CTRL0 OUT 1, MIXP_FORMAT, ROUTE_CTRL0 [7:4] = 1), instead of SIFS1
+ABOX_SBANK	arg	abox_sbank	Audio and battery	k	hakios.exynos_abox.c	
+ABOX_SECS	arg	abox_secs	Audio and battery	k	hakios.exynos_abox.c	how long step 7 plays its tone, 1 to 10 seconds (3)
+ABOX_SYSPOWER	arg	abox_syspower	Audio and battery	k	hakios.exynos_abox.c	leave SYSPOWER_CTRL ("DRAM on") and the ACLK/BCLK_UAIF1 Q-channels alone while streaming (1: set)
+ABOX_VOL	arg	abox_vol	Audio and battery	k	hakios.exynos_abox.c	RDMA0's VOL_FACTOR [23:0] (none: 0x800000 if it reads 0, else left)
+ADRENO	arg	adreno	GPU and display	k	hakios.adreno.c	
+ADRENO_BLIND	arg	adreno_blind	GPU and display	k	hakios.adreno.c	
+ADRENO_DIRTY	arg	adreno_dirty	GPU and display	k	hakios.adreno.c	
+ADRENO_FINE	arg	adreno_fine	GPU and display	k	hakios.adreno.c	the newest step waits like that before every single access
+ADRENO_KEEP	arg	adreno_keep	GPU and display	k	hakios.adreno.c	
+ADRENO_ONLY	arg	adreno_only	GPU and display	k	hakios.adreno.c	step K alone (what steps 6 to 10 need, they check for themselves: within one session of the loader, power and clocks stay as an earlier run left them)
+ADRENO_PAUSE	arg	adreno_pause	GPU and display	k	hakios.adreno.c	how long the newest step waits after announcing a group of accesses (default 2200)
+ADRENO_RETURN	arg	adreno_return	GPU and display	k	hakios.adreno.c	when all is over, go back to the loader instead of starting the system
+ADRENO_SKIP	arg	adreno_skip	GPU and display	k	hakios.adreno.c	leave out the steps whose bits are set (bit 2 = step 2)
+ADRENO_SPEED	arg	adreno_speed	GPU and display	k	hakios.adreno.c	step 17 asks the GMU for the 3D core's Nth speed: 1 315 MHz, 2 450 MHz, 3 550 MHz (the default: the most this phone's GPU is rated for)
+ADRENO_STREAM1	arg	adreno_stream1	GPU and display	k	hakios.adreno.c	step 18 leaves the core's second stream out (0) or gives it an empty context of its own (2): what the SMMU then records shows what the core
+ADRENO_WATCH	arg	adreno_watch	GPU and display	k	hakios.adreno.c	after the last step, say once a second for S seconds (default 20) that the machine is still alive, and what was written last
+ADSP_AGAIN	arg	adsp_again	Audio and battery	k	hakios.adsp.c	
+ADSP_APR_WAIT	arg	adsp_apr_wait	Audio and battery	k	hakios.adsp.c	
+ADSP_KEEP	arg	adsp_keep	Audio and battery	k	hakios.adsp.c	
+ADSP_LISTEN	arg	adsp_listen	Audio and battery	k	hakios.adsp.c	
+ADSP_NEW	arg	adsp_new	Audio and battery	k	hakios.adsp.c	
+ADSP_PAUSE	arg	adsp_pause	Audio and battery	k	hakios.adsp.c	
+ADSP_RETURN	arg	adsp_return	Audio and battery	k	hakios.adsp.c	
+ADSP_STEP	arg	adsp_step	Audio and battery	k	hakios.adsp.c	
+ADSP_WAIT	arg	adsp_wait	Audio and battery	k	hakios.adsp.c	
+APFS_CHEAP	arg	apfs_cheap	Storage and APFS	k	apfs_vfsops.c	
+APFS_CHECK	arg	apfs_check	Storage and APFS	k	hakios.apfs_check.c	walk the whole volume and print only the totals
+APFS_CHUNK	arg	apfs_chunk	Storage and APFS	k	hakios.apfs_check.c	
+APFS_CONTENTS	arg	apfs_contents	Storage and APFS	k	hakios.apfs_check.c	no file is read at all, only looked up and stat'ed -- how long the walk itself takes, the directories and the inodes
+APFS_DEPTH	arg	apfs_depth	Storage and APFS	k	hakios.apfs_check.c	go no deeper than N levels below where the walk starts (1 = only the entries of that directory; 0 = no limit)
+APFS_DEV	arg	apfs_dev	Storage and APFS	k	hakios.apfs_check.c	the device to mount for modes 1 to 3 and 6 (default rvblk0)
+APFS_HASH	arg	apfs_hash	Storage and APFS	k	hakios.apfs_check.c	
+APFS_MAX	arg	apfs_max	Storage and APFS	k	hakios.apfs_check.c	stop after N entries (and say how memory stood on the way): for finding out what a walk that never comes back runs into
+APFS_META_CLUSTER	arg	apfs_meta_cluster	Storage and APFS	k	apfs_vfsops.c	
+APFS_MNT	arg	apfs_mnt	Storage and APFS	k	hakios.apfs_check.c	where to mount it for mode 6 (default /private/var/apfs-check)
+APFS_PAR	arg	apfs_par	Storage and APFS	k	apfs_vfsops.c	at most N threads on one request, the caller's included (default: four, or the processors if fewer -- see apfs_pool_start(); 1 turns the helpers off)
+APFS_ROOT_C	arg	apfs_root_c	Storage and APFS	k	apfs_vfsops.c	
+APFS_ROOT_V	arg	apfs_root_v	Storage and APFS	k	apfs_vfsops.c	
+APFS_ROUND	arg	apfs_round	Storage and APFS	k	apfs_vfsops.c	
+APFS_SKIP	arg	apfs_skip	Storage and APFS	k	hakios.apfs_check.c	directories not to go into, as paths inside the volume, comma separated
+APFS_SPARSE	arg	apfs_sparse	Storage and APFS	k	hakios.sparse.c	
+APFS_STORE_LEN	arg	apfs_store_len	Storage and APFS	k	hakios.apfs_check.c	how many bytes of payload (default 40000)
+APFS_STORE_NOTE	arg	apfs_store_note	Storage and APFS	k	hakios.apfs_check.c	the writer's own number, kept in the header (default 0)
+APFS_STORE_SEED	arg	apfs_store_seed	Storage and APFS	k	hakios.apfs_check.c	which pattern (default 1); a different seed is a different payload
+APFS_SUBTREE	arg	apfs_subtree	Storage and APFS	k	hakios.apfs_check.c	walk only that part of the volume
+APFS_THREADS	arg	apfs_threads	Storage and APFS	k	hakios.apfs_check.c	how many, for mode 5 (default 4)
+APFS_UBC_READ	arg	apfs_ubc_read	Storage and APFS	k	apfs_vfsops.c	
+APFS_VOLUME	arg	apfs_volume	Storage and APFS	k	hakios.apfs_check.c	a volume for user space in an ordinary boot
+APFS_VOLUME_AT	arg	apfs_volume_at	Storage and APFS	k	hakios.apfs_check.c	
+APFS_WALKERS	arg	apfs_walkers	Storage and APFS	k	hakios.apfs_check.c	one of N walkers; a subdirectory is left on the shared stack (par_push)
+APFS_WRITE_AT	arg	apfs_write_at	Storage and APFS	k	hakios.apfs_check.c	where in the file (default 0)
+APFS_WRITE_BYTE	arg	apfs_write_byte	Storage and APFS	k	hakios.apfs_check.c	what to fill them with (default 0xa5)
+APFS_WRITE_LEN	arg	apfs_write_len	Storage and APFS	k	hakios.apfs_check.c	how many bytes (default 4096, at most APFS_WRITE_MAX)
+APFS_WRITE_PATH	arg	apfs_write_path	Storage and APFS	k	hakios.apfs_check.c	the file in it, by path from the volume's root
+APPLOG	arg	applog	CPU, memory and boot	k	(patch)	
+APPLOG_NAME	arg	applog_name	CPU, memory and boot	k	(patch)	
+AUTOUNLOCK	arg	autounlock	User space	u	inject_sb.c	
+AVF_EXIT	arg	avf_exit	User space	k	1001-avf-psci-system-off.patch	
+BACKLIGHT	arg	backlight	GPU and display	k	hakios.backlight.cpp	
+BATTERY	arg	battery	Audio and battery	kl	hakios.adsp.c,hakios.battery.c,hakios.scfb_battery.c,loader.c	
+BATTMGR	arg	battmgr	Audio and battery	k	hakios.adsp.c	every property once, for the log (which number is which on this phone's firmware)
+BRCMFMAC	arg	brcmfmac	Wi-Fi	k	hakios.bcm4361_bt.c,hakios.brcmfmac.c,lx_brcmf.c	brcmfmac's probe: its PCI device table, BAR0 and BAR1 mapped, bus mastering on, the chip's ID
+BRCMFMAC_DEBUG	arg	brcmfmac_debug	Wi-Fi	k	lx_brcmf.c	
+BRCMFMAC_POLL	arg	brcmfmac_poll	Wi-Fi	k	lx_pci.c	
+BRCMFMAC_POLL_MS	arg	brcmfmac_poll_ms	Wi-Fi	k	lx_pci.c	
+BRCMFMAC_TCM_IDX	arg	brcmfmac_tcm_idx	Wi-Fi	k	lx_brcmf.c	the rings' indices stay in the chip's RAM, not written into ours by its DMA (lx-state.patch)
+BRIGHTNESS_BRIDGE	arg	brightness_bridge	User space	u	inject_sb.c	the brightness the user sets (Control Center's slider, Settings) is taken to the panel
+BT	arg	bt	User space	k	hakios.bcm4361_bt.c,hakios.bt.c	
+BT_AGAIN	arg	bt_again	User space	k	hakios.bt.c	the second look this many seconds later (0: no second look; 30)
+BT_BAUD	arg	bt_baud	User space	k	hakios.bcm4361_bt.c	
+BT_EXPANDER_RESET	arg	bt_expander_reset	User space	k	hakios.bcm4361_bt.c	at bt=2 and up, take the expander out of reset if it is held there
+BT_HCD	arg	bt_hcd	User space	k	hakios.bcm4361_bt.c	the patch file's name in fw/ (default bcm4361B2.hcd); without it, the phone's own from VENDOR
+BT_KEEP	arg	bt_keep	User space	k	hakios.bcm4361_bt.c	leave the chip powered at the end (default: BT_EN and BT_WAKE low once the steps are done or one fails)
+BT_MODULE	arg	bt_module	User space	k	hakios.bcm4361_bt.c	murata or semco: which patch (bcm4361B2_<m>.hcd; default: the module Wi-Fi read in OTP, else a guess)
+BT_SCAN	arg	bt_scan	User space	k	hakios.bcm4361_bt.c	
+BT_TTY	arg	bt_tty	User space	k	hakios.bcm4361_bt.c	
+BT_UART_MHZ	arg	bt_uart_mhz	User space	k	hakios.bcm4361_bt.c	UART_BT's clock in MHz, if bt=1 shows the divider or mux not as Android leaves them (default 200)
+BT_VENDOR	arg	bt_vendor	User space	k	hakios.bcm4361_bt.c	never read the patch from the phone's VENDOR partition (default: read it there with ufs=2)
+BT_VENDOR_PART	arg	bt_vendor_part	User space	k	hakios.bcm4361_bt.c	the partition the patch is read from (default VENDOR)
+BUTTONS	arg	buttons	Touch and buttons	k	hakios.buttons.c	
+BUTTONS_STEPS	arg	buttons_steps	Touch and buttons	k	hakios.buttons.c	
+CA_VBL	arg	ca_vbl	User space	u	inject.c	CoreAnimation's frame clock from the display driver's refresh notifications
+CAENV	arg	caenv	User space	u	inject.c,inject_sb.c	CoreAnimation's switches here as in the window server (inject.c), set before QuartzCore reads them
+CAM_AFTER	arg	cam_after	Cameras	k	hakios.camera.c	
+CAM_FAKE	arg	cam_fake	Cameras	k	1400-avf-scion-camera.patch,hakios.camera.c	
+CAM_FAKE_FPS	arg	cam_fake_fps	Cameras	k	hakios.camera.c	
+CAM_FRAMES	arg	cam_frames	Cameras	k	hakios.camera.c	
+CAM_GAIN	arg	cam_gain	Cameras	k	hakios.camera.c	
+CAM_KEEP_MB	arg	cam_keep_mb	Cameras	k	hakios.camera.c	
+CAM_MODE	arg	cam_mode	Cameras	k	hakios.camera.c	
+CAM_PATTERN	arg	cam_pattern	Cameras	k	hakios.camera.c	
+CAM_S9	arg	cam_s9	Cameras	k	hakios.exynos_camera.c,hakios.s2mpb02_torch.c	the front camera's first N steps: 1 a look, 2 the sensor's ID, 3 the ISPPRE domain and CSIS1
+CAM_S9_ADDR	hex	cam_s9_addr	Cameras	k	hakios.exynos_camera.c	the sensor's 7-bit I2C address, if not 0x35 (the device tree's) and not found by the scan
+CAM_S9_AE	arg	cam_s9_ae	Cameras	k	hakios.exynos_camera.c	no auto-exposure: the frames as cam_s9_exp and cam_s9_gain have them (default 1: on)
+CAM_S9_AE_FRAMES	arg	cam_s9_ae_frames	Cameras	k	hakios.exynos_camera.c	
+CAM_S9_BAYER	arg	cam_s9_bayer	Cameras	k	hakios.exynos_camera.c	camshot's Bayer order: 0 RGGB, 1 GRBG (the default, the sensor's), 2 GBRG, 3 BGGR
+CAM_S9_DGAIN	arg	cam_s9_dgain	Cameras	k	hakios.exynos_camera.c	the most digital gain the auto-exposure may use, 0x100 being 1x (default 0x400, at most 0x1000)
+CAM_S9_EXP	arg	cam_s9_exp	Cameras	k	hakios.exynos_camera.c	the first exposure of step 5's frame in lines of 26.3 us (default 1000, at most 1262)
+CAM_S9_GAIN	arg	cam_s9_gain	Cameras	k	hakios.exynos_camera.c	the first analog gain of step 5's frame, 0x20 being 1x (default 0x40, at most 0x200)
+CAM_S9_IPCLK	arg	cam_s9_ipclk	Cameras	k	hakios.exynos_camera.c	
+CAM_S9_ISPDIV	arg	cam_s9_ispdiv	Cameras	k	hakios.exynos_camera.c	CLKCMU_ISPPRE_BUS (CSIS1's and its WDMA's clock) = SHARED1_DIV4, 466 MHz, / (D + 1); default
+CAM_S9_MMU_PROBE	arg	cam_s9_mmu_probe	Cameras	k	hakios.exynos_camera.c	
+CAM_S9_PACK12	arg	cam_s9_pack12	Cameras	k	hakios.exynos_camera.c	the WDMA's PACK12 layout rather than RAW10 as it comes (the BSP sets PACK12 for its V4L2 SBGGR10 buffers)
+CAM_S9_PROBE	arg	cam_s9_probe	Cameras	k	hakios.exynos_camera.c	the risky reads too, for the log: CMU_ISPPRE's whole Q-channel sweep with each DBG_NFO (+0x4000)
+CAM_S9_SAT	arg	cam_s9_sat	Cameras	k	hakios.exynos_camera.c	camshot's colour saturation in per cent (default 140; 100: none; at most 300)
+CAM_S9_STRIDE	arg	cam_s9_stride	Cameras	k	hakios.exynos_camera.c	camshot's bytes a line of the frame (default 3264: the WDMA's RAW10 is a pixel in 16 bits)
+CAM_SENSOR	arg	cam_sensor	Cameras	k	hakios.camera.c	
+CAM_SETTLE	arg	cam_settle	Cameras	k	hakios.camera.c	
+CAM_SHUTTER	arg	cam_shutter	Cameras	k	hakios.camera.c	
+CAM_VBLANK	arg	cam_vblank	Cameras	k	hakios.camera.c	
+CAMTL	arg	camtl	User space	u	inject.c	
+CC_FADE	arg	cc_fade	User space	u	inject_sb.c	
+COHTEST	arg	cohtest	User space	k	hakios.exynos_m3.c	is the big cluster in the same coherency domain as the A55s once it is started? (off by default)
+COHTEST_DELAY	arg	cohtest_delay	User space	k	hakios.exynos_m3.c	
+CONSOLE_QUIET	arg	console_quiet	User space	k	1003-avf-console-quiet.patch	
+CPUFREQ_GOV	arg	cpufreq_gov	User space	k	hakios.exynos_cpufreq.c	run it (0, or none: the fixed rates of cpufreq_lit= and cpufreq_big=)
+CPUFREQ_GOV_BIG_MAX	arg	cpufreq_gov_big_max	User space	k	hakios.exynos_cpufreq.c	
+CPUFREQ_GOV_BIG_MIN	arg	cpufreq_gov_big_min	User space	k	hakios.exynos_cpufreq.c	
+CPUFREQ_GOV_LIT_MAX	arg	cpufreq_gov_lit_max	User space	k	hakios.exynos_cpufreq.c	
+CPUFREQ_GOV_LIT_MIN	arg	cpufreq_gov_lit_min	User space	k	hakios.exynos_cpufreq.c	
+CPUFREQ_GOV_LOG	arg	cpufreq_gov_log	User space	k	hakios.exynos_cpufreq.c	a summary line this often (0: none; 1)
+CPUFREQ_GOV_MS	arg	cpufreq_gov_ms	User space	k	hakios.exynos_cpufreq.c	the load window (20 to 200; 40)
+CPULOAD	arg	cpuload	CPU, memory and boot	k	hakios.cpufreq.c	every MS milliseconds, how busy each of our cores was meanwhile, in percent, to the loader's log (tools/frames.py shows it per gesture)
+CPUMASK	arg	cpumask	Loader	l	loader.c	
+CS47L93	arg	cs47l93	Audio and battery	k	hakios.cs47l93.c	the first N steps (1 looks, 2 powers the codec and reads its ID, 6 makes the microphone ready)
+CS47L93_DIV	arg	cs47l93_div	Audio and battery	k	hakios.cs47l93.c	
+CS47L93_HP	arg	cs47l93_hp	Audio and battery	k	hakios.cs47l93.c	the headphones (THE HEADPHONES below): Cirrus's register patch at power-up, then, once the six
+CS47L93_HP_VOL	arg	cs47l93_hp_vol	Audio and battery	k	hakios.cs47l93.c	OUT2's digital volume, 0x80 0 dB, 0.5 dB a step, at most 0x80 (0x68: -12 dB); iOS's own volume
+CS47L93_MIC_VOL	arg	cs47l93_mic_vol	Audio and battery	k	hakios.cs47l93.c	IN3L's digital volume, 0x80 0 dB, 0.5 dB a step, at most 0xBF (0x90, +8 dB)
+CS_RELAX_PLATFORM_TASK_PORTS	arg	cs_relax_platform_task_ports	User space	k	1002-avf-security-level.patch	
+DDR	arg	ddr	CPU, memory and boot	k	hakios.cpufreq.c	the memory's bus clock managers ("BCM") in the command database the boot loader left, with what is needed to vote for bandwidth on them -- only read
+DDR_REST	arg	ddr_rest	CPU, memory and boot	k	hakios.cpufreq.c	
+DDR_VOTE	arg	ddr_vote	CPU, memory and boot	k	hakios.cpufreq.c	
+DISPLAY_PROBE	arg	display_probe	GPU and display	k	hakios.adreno.c	before any step: read what the firmware left the display controller doing (display_probe() below; two clocks are turned on, nothing else written)
+EARLY_LOG	arg	early_log	User space	k	1503-early-log-and-panic.patch	
+ESSLOG	arg	esslog	User space	k	1507-esslog-exynos-snapshot.patch,1509-m3-diag-and-pan-off.patch	
+EXYNOS_KEYS	arg	exynos_keys	Touch and buttons	k	hakios.exynos_keys.c	
+FB_BEAT	arg	fb_beat	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FB_CA_HZ	arg	fb_ca_hz	GPU and display	k	MiniIOMobileFramebuffer.cpp	the refresh rate told to CoreAnimation (IOMFBDisplayRefresh) when it is not to be fb_hz's
+FB_DIFF	arg	fb_diff	GPU and display	k	MiniIOMobileFramebuffer.cpp	which pixels of the panel each frame changed (it costs: the panel's memory is slow to read)
+FB_DPP	arg	fb_dpp	GPU and display	k	MiniIOMobileFramebuffer.cpp	three buffers of the display's size (the iPhone's 1125 x 2436): a frame is copied into one, not scaled
+FB_FILTER	arg	fb_filter	GPU and display	k	MiniIOMobileFramebuffer.cpp	the picture is scaled to the panel nearest neighbour, as it once was
+FB_FLIP	arg	fb_flip	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FB_HZ	arg	fb_hz	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FB_MEASURE	arg	fb_measure	GPU and display	k	MiniIOMobileFramebuffer.cpp	how often the panel is really refreshed
+FB_PRI	arg	fb_pri	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FB_QUEUE	arg	fb_queue	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FB_RT	arg	fb_rt	GPU and display	k	MiniIOMobileFramebuffer.cpp	the thread handing the swaps over made real-time, once for each such thread: a period of a refresh, fb_rt_us
+FB_RT_US	arg	fb_rt_us	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FB_SWAPWAIT	arg	fb_swapwait	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FB_TCOAL	arg	fb_tcoal	GPU and display	k	MiniIOMobileFramebuffer.cpp	the kernel's timer coalescing left on
+FB_THREADS	arg	fb_threads	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FB_ZC	arg	fb_zc	GPU and display	k	MiniIOMobileFramebuffer.cpp	the surface VGF0 scans out now, and the one flipped to and not yet taken (each held, its use count raised)
+FB_ZC_HOLD	arg	fb_zc_hold	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FBHEIGHT	arg	fbheight	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FBSCALE	arg	fbscale	GPU and display	k	MiniIOMobileFramebuffer.cpp	the same 375 x 812 points drawn at two pixels a point instead of three
+FBTRACE	arg	fbtrace	GPU and display	k	MiniIOMobileFramebuffer.cpp	log the first N calls of every selector (default 3)
+FBWIDTH	arg	fbwidth	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+FPS_LOG	arg	fps_log	GPU and display	k	MiniIOMobileFramebuffer.cpp,hakios.ufs.c	a line a second while frames come ("fps: ...", in the loader's log and the kernel's): swaps
+GAMUT	arg	gamut	Loader	l	loader.c	
+GL	arg	gl	User space	u	inject.c,inject_sb.c	not even with a GPU; gl=1: also without one, by Mesa's software driver (slow; for working on eagl.c in QEMU)
+GLBLIT	arg	glblit	GPU and display	u	eagl.c	the surface's memory, as before
+GLCENSUS	arg	glcensus	GPU and display	u	eagl.c	
+GLCOMPILE	arg	glcompile	User space	u	inject.c	
+GLCOPY	arg	glcopy	GPU and display	u	eagl.c	
+GLENV	arg	glenv	GPU and display	u	eagl.c	
+GLERRORS	arg	glerrors	GPU and display	u	eagl.c	ask the library for an error after every call, for the first 600 frames
+GLFETCH	arg	glfetch	GPU and display	u	eagl.c	
+GLFRAMES	arg	glframes	GPU and display	u	eagl.c	
+GLGROUP	arg	glgroup	GPU and display	u	eagl.c	
+GLNO	arg	glno	User space	u	inject.c	
+GLNUMBERS	arg	glnumbers	GPU and display	u	eagl.c	
+GLPACE	arg	glpace	GPU and display	u	eagl.c	
+GLPLAIN	arg	glplain	GPU and display	u	eagl.c	leave such draws as they are; 2: also those without a texture; 3: the two with a colour matrix drawn plainly too
+GLPRECISION	arg	glprecision	GPU and display	u	eagl.c	as the shaders say.
+GLPROF	arg	glprof	GPU and display	u	eagl.c	
+GLSB3	arg	glsb3	User space	u	inject.c	
+GLSHADERS	arg	glshaders	GPU and display	u	eagl.c	
+GLSHOW	arg	glshow	GPU and display	u	eagl.c	the first texture of that size there is (names are handed out afresh every run)
+GLSHOW_PART	arg	glshow_part	GPU and display	u	eagl.c	
+GLSHOW_ZOOM	arg	glshow_zoom	GPU and display	u	eagl.c	
+GLSKIP	arg	glskip	GPU and display	u	eagl.c	the draws of those programs are left out of the picture, which says what in it is their work
+GLSLOW	arg	glslow	GPU and display	u	eagl.c	
+GLSTILL	arg	glstill	GPU and display	u	eagl.c	
+GLSURFACES	arg	glsurfaces	GPU and display	u	eagl.c	
+GLSURFACES_MB	arg	glsurfaces_mb	GPU and display	u	eagl.c	
+GLSYNC	arg	glsync	GPU and display	u	eagl.c	
+GLTRACE	arg	gltrace	GPU and display	u	eagl.c	
+GLTRACE_AT	arg	gltrace_at	GPU and display	u	eagl.c	
+GLTRACE_CORNERS	arg	gltrace_corners	GPU and display	u	eagl.c	
+GLTRACE_DRAWS	arg	gltrace_draws	GPU and display	u	eagl.c	
+GLTRACE_FRAMES	arg	gltrace_frames	GPU and display	u	eagl.c	
+GLTRACE_FUNCTION	arg	gltrace_function	GPU and display	u	eagl.c	
+GLTRACE_LIT	arg	gltrace_lit	GPU and display	u	eagl.c	
+GLTRACE_LOOK	arg	gltrace_look	GPU and display	u	eagl.c	the pixel a listed draw has left in the middle of itself (the matrix is CoreAnimation's, the last it gave)
+GLTRACE_PLACE	arg	gltrace_place	GPU and display	u	eagl.c	a line about a draw, if any of its first corners is inside the rectangle (or the rectangle inside them)
+GLTRACE_SHADERS	arg	gltrace_shaders	GPU and display	u	eagl.c	the text of the shaders the program of a traced draw is made of, the first time that program draws
+GLTRACE_UNIFORMS	arg	gltrace_uniforms	GPU and display	u	eagl.c	what the program of a traced draw was given, by the names its shaders use (coord_arg, texmat0, ...)
+GLWAIT	arg	glwait	GPU and display	u	eagl.c	
+GLYES	arg	glyes	User space	u	inject.c	the renderer is made to answer that it has those functions after all
+GOV_BOOST_BIG	arg	gov_boost_big	User space	k	hakios.exynos_cpufreq.c	the M3s' floor while touched (1469000; 0: no touch boost for them)
+GOV_BOOST_LIT	arg	gov_boost_lit	User space	k	hakios.exynos_cpufreq.c	the A55s' floor while touched (1690000; 0: none)
+GOV_BOOST_MS	arg	gov_boost_ms	User space	k	hakios.exynos_cpufreq.c	how long the touch boost holds after the last finger event (300; 0: no touch boost)
+GOV_DOWN	arg	gov_down	User space	k	hakios.exynos_cpufreq.c	windows in a row that want less before the rate comes down (5; 1 to 50)
+GOV_FRAME_BIG	arg	gov_frame_big	User space	k	hakios.exynos_cpufreq.c	the M3s' floor while frames come (1261000; 0: no frame boost)
+GOV_FRAME_MS	arg	gov_frame_ms	User space	k	hakios.exynos_cpufreq.c	a frame this recent keeps the frame boost on (100; 20 to 1000)
+GOV_TARGET	arg	gov_target	User space	k	hakios.exynos_cpufreq.c	the busiest core's share wanted at the new rate (60; 30 to 95)
+GPU3D	arg	gpu3d	User space	k	hakios.vgpu3d_xnu.c	
+GPU3D_SIZE	arg	gpu3d_size	User space	k	hakios.vgpu3d_xnu.c	
+GPU_CACHED	arg	gpu_cached	GPU and display	k	hakios.gpu.cpp	
+GPU_EXACT	arg	gpu_exact	GPU and display	k	hakios.adreno.c	
+GPU_KEEP	arg	gpu_keep	GPU and display	k	hakios.gpu.cpp	
+GPU_LOG	arg	gpu_log	GPU and display	k	hakios.adreno.c	
+GPU_RECOVER	arg	gpu_recover	GPU and display	k	hakios.adreno.c	a submission the core never finishes does not cost the rest of the run
+GPU_VA	arg	gpu_va	GPU and display	k	hakios.adreno.c	
+HALT_OFF	arg	halt_off	Chip, thermal and PMIC	k	hakios.exynos_poweroff.c	what a halt does: 0 the loader's way (the default), 1 panel off and PS_HOLD, 2 also the APM stopped first
+HAPTIC_EFFECT	arg	haptic_effect	Haptics and torch	k	hakios.haptic.c	
+IMMEDIATE_NMI	arg	immediate_NMI	User space	k	1509-m3-diag-and-pan-off.patch	
+IOAES	arg	ioaes	User space	k	MiniIOAESAccelerator.cpp	no IOAESAccelerator at all, as the kernel was before this driver
+ISA_FLOOR	arg	isa_floor	User space	k	1510-isa-floor.patch	
+KSAMPLE	arg	ksample	Debugging	k	user_exception_trace.c	
+KSAMPLE_US	arg	ksample_us	Debugging	k	user_exception_trace.c	
+LOADER_PLATFORM	arg	loader_platform	Loader	l	loader.c	
+M3_DIAG	arg	m3_diag	User space	k	1509-m3-diag-and-pan-off.patch	
+M3_FLUSH	arg	m3_flush	User space	k	1509-m3-diag-and-pan-off.patch	
+M3_IDS	arg	m3_ids	User space	k	1509-m3-diag-and-pan-off.patch	
+M3_PREP	arg	m3_prep	User space	k	1510-isa-floor.patch,1511-m3-user-cache-pou.patch,hakios.exynos_m3.c	
+MACHINE_NAME	arg	machine_name	CPU, memory and boot	k	GenericARMPE.cpp	
+MALI	arg	mali	GPU and display	k	hakios.mali.c	the first N of the GPU's nine steps of bring-up (9: all, then served); 0 or none: left alone
+MALI_ACPM	arg	mali_acpm	GPU and display	k	hakios.mali.c	the rail not raised: the GPU is touched at the boot's voltage, which hung the S9+ (a test only)
+MALI_FASTMAP	arg	mali_fastmap	GPU and display	k	hakios.mali.c	the GPU walks its tables through its own caches, and every buffer entered is an UPDATE of AS 0
+MALI_FLUSH	arg	mali_flush	GPU and display	k	hakios.mali.cpp	
+MALI_GOV	arg	mali_gov	GPU and display	k	hakios.mali.c	
+MALI_GOV_FRAME	arg	mali_gov_frame	GPU and display	k	hakios.mali.c	
+MALI_MHZ	arg	mali_mhz	GPU and display	k	hakios.mali.c	the GPU's clock: 260 (S-Boot's, the default), 455 or 572, the S9+ port's three rates
+MALI_NAP_US	arg	mali_nap_us	GPU and display	k	hakios.mali.c	
+MALI_PLL	arg	mali_pll	GPU and display	k	hakios.mali.c	PLL_G3D left as the boot left it (the step stops if it does not run)
+MALI_TRACE	arg	mali_trace	GPU and display	k	hakios.mali.c	a line for every job: "tl: j SEQ f|v q QUEUED b BEGAN e ENDED", in microseconds
+MALI_UV	arg	mali_uv	GPU and display	k	hakios.mali.c	BUCK6 target in microvolts, 300000..950000 in 6250-uV steps (default 950000)
+MAX77705	arg	max77705	Audio and battery	k	hakios.max77705.c	
+MAX77705_HAPTIC	arg	max77705_haptic	Audio and battery	k	hakios.max77705.c	
+MAX77705_IPCLK	arg	max77705_ipclk	Audio and battery	k	hakios.max77705.c	
+MAX77705_STEPS	arg	max77705_steps	Audio and battery	k	hakios.max77705.c	
+MAX77705_USBSW	arg	max77705_usbsw	Audio and battery	k	hakios.max77705.c	
+MAX98512	arg	max98512	Audio and battery	k	hakios.max98512.c	a look: the bus brought up (its clocks, the USI, the pins), both chips' revisions and registers
+MAX98512_GAIN	arg	max98512_gain	Audio and battery	k	hakios.max98512.c	the bottom speaker's gain at start, 1 to 5 (+3 to +15 dB; 1); the top one's is always 1
+MD0	arg	md0	User space	k	1101-virtio-disk-as-md0.patch	
+MEMBENCH	arg	membench	CPU, memory and boot	k	hakios.cpufreq.c	
+METAL	arg	metal	GPU and display	ku	MiniIOMobileFramebuffer.cpp,hakios_metal_shown.c	say where Metal's device is (docs/metal-plan.md, step 1)
+METAL_PROFILE	arg	metal_profile	User space	u	hakiosmetal_air.m	
+MIC_ADC	arg	mic_adc	Audio and battery	k	hakios.mic.c	
+MIC_INPUT	arg	mic_input	Audio and battery	k	hakios.mic.c	
+MIC_MAIN	arg	mic_main	Audio and battery	k	hakios.mic.c	
+MIC_SECS	arg	mic_secs	Audio and battery	k	hakios.mic.c	
+MIC_TAP	arg	mic_tap	Audio and battery	k	hakios.mic.c	
+MIC_TEST	arg	mic_test	Audio and battery	k	hakios.mic.c	
+MODEM_APN	arg	modem_apn	Cellular	k	hakios.mpss.c	a session to that APN instead of the default profile
+MODEM_DATA_NOBIND	arg	modem_data_nobind	Cellular	k	hakios.mpss.c	
+MODEM_DATA_OFF	arg	modem_data_off	Cellular	k	hakios.mpss.c	
+MODEM_DATA_WAIT	arg	modem_data_wait	Cellular	k	hakios.mpss.c	
+MODEM_DPM_OFF	arg	modem_dpm_off	Cellular	k	hakios.mpss.c	
+MODEM_IPA	arg	modem_ipa	Cellular	k	hakios.mpss.c	
+MODEM_IPA_BUS_OFF	arg	modem_ipa_bus_off	Cellular	k	hakios.mpss.c	
+MODEM_IPA_DATA_OFF	arg	modem_ipa_data_off	Cellular	k	hakios.ipa.c	none of this. modem_ipa_data_trace=1: a line per packet.
+MODEM_IPA_DATA_TRACE	arg	modem_ipa_data_trace	Cellular	k	hakios.cell.c,hakios.ipa.c	
+MODEM_IPA_FW	arg	modem_ipa_fw	Cellular	k	hakios.mpss.c	
+MODEM_IPA_FW_AT	arg	modem_ipa_fw_at	Cellular	k	hakios.mpss.c	
+MODEM_IPA_GSI_ENABLE	arg	modem_ipa_gsi_enable	Cellular	k	hakios.mpss.c	
+MODEM_IPA_ITEM	arg	modem_ipa_item	Cellular	k	hakios.mpss.c	
+MODEM_IPA_NO_PROBE	arg	modem_ipa_no_probe	Cellular	k	hakios.mpss.c	
+MODEM_IPA_QUIET	arg	modem_ipa_quiet	Cellular	k	hakios.mpss.c	
+MODEM_IPA_RAW	arg	modem_ipa_raw	Cellular	k	hakios.mpss.c	
+MODEM_IPA_ROUTES	arg	modem_ipa_routes	Cellular	k	hakios.mpss.c	
+MODEM_IPA_SKIP_UC	arg	modem_ipa_skip_uc	Cellular	k	hakios.mpss.c	
+MODEM_IPA_SMMU_OFF	arg	modem_ipa_smmu_off	Cellular	k	hakios.mpss.c	
+MODEM_KEEP	arg	modem_keep	Cellular	k	hakios.mpss.c	
+MODEM_LISTEN	arg	modem_listen	Cellular	k	hakios.mpss.c	
+MODEM_NAS_WAIT	arg	modem_nas_wait	Cellular	k	hakios.mpss.c	
+MODEM_NEW	arg	modem_new	Cellular	k	hakios.mpss.c	
+MODEM_NO_IPA_QMI	arg	modem_no_ipa_qmi	Cellular	k	hakios.mpss.c	
+MODEM_NO_NAV	arg	modem_no_nav	Cellular	k	hakios.mpss.c	
+MODEM_NO_TFTP	arg	modem_no_tftp	Cellular	k	hakios.mpss.c	
+MODEM_ONLINE	arg	modem_online	Cellular	k	hakios.mpss.c	
+MODEM_PAUSE	arg	modem_pause	Cellular	k	hakios.mpss.c	
+MODEM_RETURN	arg	modem_return	Cellular	k	hakios.mpss.c	
+MODEM_RMTFS_DELAY	arg	modem_rmtfs_delay	Cellular	k	hakios.mpss.c	
+MODEM_RMTFS_RW_FAKE	arg	modem_rmtfs_rw_fake	Cellular	k	hakios.mpss.c	
+MODEM_RMTFS_RW_OFF	arg	modem_rmtfs_rw_off	Cellular	k	hakios.mpss.c	
+MODEM_SHARE_OFF	arg	modem_share_off	Cellular	k	hakios.mpss.c	
+MODEM_SHARE_TEST	arg	modem_share_test	Cellular	k	hakios.mpss.c	
+MODEM_SIM_PROBE_OFF	arg	modem_sim_probe_off	Cellular	k	hakios.mpss.c	
+MODEM_SIM_SWITCH_OFF	arg	modem_sim_switch_off	Cellular	k	hakios.mpss.c	
+MODEM_STEP	arg	modem_step	Cellular	k	hakios.mpss.c	the steps once the root is there, then back to the loader if modem_return=1 says so
+MODEM_WAIT	arg	modem_wait	Cellular	k	hakios.mpss.c	
+MODEM_WDA_OFF	arg	modem_wda_off	Cellular	k	hakios.mpss.c	
+PAN	arg	pan	User space	k	1509-m3-diag-and-pan-off.patch	
+PANEL	arg	panel	GPU and display	k	hakios.s6e3ha8.c	the driver: without it nothing here runs
+PANEL_BRIGHTNESS	arg	panel_brightness	GPU and display	k	hakios.s6e3ha8.c	a brightness of 0-255 set once at start
+PANEL_GAMMA	arg	panel_gamma	GPU and display	k	hakios.s6e3ha8.c	gamma and AOR sent (the default)
+PANEL_GAMMA_LOG	arg	panel_gamma_log	GPU and display	k	hakios.s6e3ha8.c	all 74 rows in the log, as Android's kernel prints them at start ("gamma[nits] : ...") to set beside Android's log of the same phone
+PMIC_LIST	arg	pmic_list	Chip, thermal and PMIC	k	hakios.pmic.c	only the clock, not the inventory of every block
+POSTER_RETRY	arg	poster_retry	User space	u	poster_retry.c	
+PRESS_POWER	arg	press_power	Touch and buttons	k	hakios.buttons.c	a short press of the power key that many seconds after boot, and another ten seconds later, given to Darwin as the key's own are (hakios_touch_post):
+PRESS_POWER_MS	arg	press_power_ms	Touch and buttons	k	hakios.buttons.c	
+PRIVS	arg	privs	Security stand-ins	k	kern_minimac.c	
+RD	arg	rd	CPU, memory and boot	kl	(patch),1100-virtio-pci-transport.patch,loader.c	
+REC_MB	arg	rec_mb	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+REC_RING	arg	rec_ring	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+REC_SECS	arg	rec_secs	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+REC_SOUND	arg	rec_sound	Audio and battery	k	hakios.audio.c	
+REC_SOUND_FED	arg	rec_sound_fed	Audio and battery	k	hakios.audio.c	
+REC_SOUND_MIC	arg	rec_sound_mic	Audio and battery	k	hakios.audio.c	
+REC_START	arg	rec_start	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+REC_STEP	arg	rec_step	GPU and display	k	MiniIOMobileFramebuffer.cpp	
+RECOVERY	arg	recovery	Loader	l	loader.c	
+REGTRACE	arg	regtrace	CPU, memory and boot	k	(patch)	
+RETURN_CPU	arg	return_cpu	CPU, memory and boot	k	loader_return.c	
+RETURN_PANIC	arg	return_panic	CPU, memory and boot	k	loader_return.c	
+ROOT_APFS	arg	root_apfs	User space	u	init.c	the root is to be the Darwin root volume on /dev/DEV -- the phone's flash, read only
+RTC_PMIC	arg	rtc_pmic	User space	k	hakios.s2mps18_rtc.c	read the clock at start-up (the kernel's first ask for the time of day), log it, use it when valid
+S6SY761	arg	s6sy761	Touch and buttons	k	hakios.s6sy761.c	every address below belongs to this phone
+S6SY761_IPCLK	arg	s6sy761_ipclk	Touch and buttons	k	hakios.s6sy761.c	the HSI2C's input clock, if step 1 says it is not the 200 MHz both other drivers assume
+S6SY761_LDO	arg	s6sy761_ldo	Touch and buttons	k	hakios.s6sy761.c	
+S6SY761_PRI	arg	s6sy761_pri	Touch and buttons	k	hakios.s6sy761.c	the polling thread's priority. Default 92 (BASEPRI_PREEMPT, as the display's presenter, fb_pri)
+S6SY761_STEPS	arg	s6sy761_steps	Touch and buttons	k	hakios.s6sy761.c	
+S6SY761_TRACE	arg	s6sy761_trace	Touch and buttons	k	hakios.s6sy761.c	the first N finger events said, with the time (ms, the 24 MHz counter), to measure the rate
+SB_FPS	arg	sb_fps	User space	u	inject_sb.c	
+SCCAM_ADDR	arg	sccam.addr	User space	k	1400-avf-scion-camera.patch,hakios.sccam_torch.c	
+SCCAM_H	arg	sccam.h	User space	k	1400-avf-scion-camera.patch	
+SCCAM_SIZE	arg	sccam.size	User space	k	1400-avf-scion-camera.patch	
+SCCAM_TURN	arg	sccam.turn	User space	k	1400-avf-scion-camera.patch	
+SCCAM_W	arg	sccam.w	User space	k	1400-avf-scion-camera.patch	
+SCFB_ADDR	arg	scfb.addr	User space	k	1200-avf-scfb-display.patch,1202-virtio-gpu-2d.patch,hakios.scfb_battery.c	
+SCGPU_ADDR	arg	scgpu.addr	User space	k	hakios.vgpu3d_xnu.c	
+SCGPU_SIZE	arg	scgpu.size	User space	k	hakios.vgpu3d_xnu.c	
+SCSND_ADDR	arg	scsnd.addr	User space	k	hakios.scsnd.c	
+SCSND_SIZE	arg	scsnd.size	User space	k	hakios.scsnd.c	
+SECURITY	arg	security	User space	k	1002-avf-security-level.patch	
+SERIAL	arg	serial	Loader	l	loader.c	
+SHUB	arg	shub	Sensors	k	hakios.ssp.c	
+SHUB_CHUB_ON	arg	shub_chub_on	Sensors	k	hakios.ssp.c	
+SHUB_DIV	arg	shub_div	Sensors	k	hakios.ssp.c	
+SHUB_HELLO	arg	shub_hello	Sensors	k	hakios.ssp.c	
+SHUB_KEEP	arg	shub_keep	Sensors	k	hakios.ssp.c	at the end of the steps, or when one fails, power the hub off again (NSTDBY low); default 1
+SHUB_LOG	arg	shub_log	Sensors	k	hakios.ssp.c	every SPI frame's first bytes in the log (very loud; the first 40 frames are always logged)
+SHUB_MS	arg	shub_ms	Sensors	k	hakios.ssp.c	their period in ms (default 20; light, proximity and pressure 200)
+SHUB_REQ_LEN	arg	shub_req_len	Sensors	k	hakios.ssp.c	
+SHUB_REQ_RPC	arg	shub_req_rpc	Sensors	k	hakios.ssp.c	
+SHUB_SENSORS	arg	shub_sensors	Sensors	k	hakios.ssp.c	
+SMALL_CORES	arg	small_cores	CPU, memory and boot	k	(patch)	
+SMALL_CORES_AFTER	arg	small_cores_after	CPU, memory and boot	k	GenericARMPE.cpp	
+SOC_CMD_DB	hex	soc_cmd_db	Cellular	k	hakios.mpss.c	
+SOC_GSI_BASE	hex	soc_gsi_base	Cellular	k	hakios.ipa.c	
+SOC_IMEM	hex	soc_imem	Cellular	k	hakios.mpss.c	
+SOC_IPA_BASE	hex	soc_ipa_base	Cellular	k	hakios.ipa.c	
+SOC_IPA_FW	arg	soc_ipa_fw	Cellular	k	hakios.mpss.c	
+SOC_IPA_STREAM	arg	soc_ipa_stream	Cellular	k	hakios.mpss.c	
+SOC_IPA_STREAM_UC	arg	soc_ipa_stream_uc	Cellular	k	hakios.mpss.c	
+SOC_MPSS_MEM	hex	soc_mpss_mem	Cellular	k	hakios.mpss.c	
+SOC_PAS_IPA	arg	soc_pas_ipa	Cellular	k	hakios.mpss.c	
+SOC_PAS_MPSS	arg	soc_pas_mpss	Cellular	k	hakios.mpss.c	
+SOC_SMEM	hex	soc_smem	Cellular	k	hakios.mpss.c,hakios.socinfo.c	where SMEM is (also the modem driver's argument; 0x80900000 on the reference phone)
+SOC_SMEM_SIZE	hex	soc_smem_size	Chip, thermal and PMIC	k	hakios.socinfo.c	
+SOUND_BELOW	arg	sound_below	Audio and battery	k	hakios.sound.c	
+SOUND_GAIN	arg	sound_gain	Audio and battery	k	hakios.sound.c	
+SOUND_GUARD_AS	arg	sound_guard_as	Audio and battery	k	hakios.sound.c	
+SOUND_PAUSE	arg	sound_pause	Audio and battery	k	hakios.sound.c	
+SOUND_SECS	arg	sound_secs	Audio and battery	k	hakios.sound.c	
+SPEAKER_PROBE	arg	speaker_probe	Audio and battery	k	hakios.speaker.c	reads registers and nothing else: the pins, the power names (below)
+SURF_CLEAR	arg	surf_clear	GPU and display	k	MiniIOSurface.cpp	kept memory is given out as it is (to see what the clearing costs; a surface is then not all zeroes)
+SURF_WRAP	arg	surf_wrap	GPU and display	k	MiniIOSurface.cpp	surfaces around the client's pictures refused, as before methodWrapClientImage (for comparing)
+SURFTRACE	arg	surftrace	GPU and display	k	MiniIOSurface.cpp	log the first N surfaces created (default 24)
+SURFTRACE_OF	arg	surftrace_of	GPU and display	k	MiniIOSurface.cpp	
+SWITCHER_WALLPAPER	arg	switcher_wallpaper	User space	u	inject_sb.c	
+SYSSLEEP	arg	syssleep	CPU, memory and boot	k	(patch)	
+SYSTEM_APFS	arg	system_apfs	User space	u	init.c	the root is to be the big system image (userland/system.apfs, a RAM boot's md0) on /dev/DEV, read
+SYSTRACE	arg	systrace	CPU, memory and boot	k	(patch),user_exception_trace.c	
+SYSTRACE_NAME	arg	systrace_name	CPU, memory and boot	k	(patch)	
+THERMAL_LOG	arg	thermal_log	Chip, thermal and PMIC	k	hakios.thermal.c	a summary line this often (0: only on a rise; 60)
+THERMAL_TM0	arg	thermal_tm0	Chip, thermal and PMIC	k	hakios.thermal.c	
+THERMAL_TM1	arg	thermal_tm1	Chip, thermal and PMIC	k	hakios.thermal.c	
+TMU	arg	tmu	Chip, thermal and PMIC	k	hakios.exynos_tmu.c	the steps: 1 reads, 2 publishes, 3 acts (0, or none: nothing)
+TMU_BATT_STOP	arg	tmu_batt_stop	Chip, thermal and PMIC	k	hakios.exynos_tmu.c	step 3's limit for the battery (0: not watched; 40 to 80, the BSP's temp_highlimit; 60)
+TMU_ENABLE	arg	tmu_enable	Chip, thermal and PMIC	k	hakios.exynos_tmu.c	start a block the boot left stopped (CORE_EN only; never the hardware trip)
+TMU_LOG	arg	tmu_log	Chip, thermal and PMIC	k	hakios.exynos_tmu.c	a summary this often (0: only on a rise; 60)
+TMU_OFF	arg	tmu_off	Chip, thermal and PMIC	k	hakios.exynos_tmu.c	step 3 powers the phone off (PS_HOLD) when no charger is reported, instead of the loader's restart
+TMU_POLL	arg	tmu_poll	Chip, thermal and PMIC	k	hakios.exynos_tmu.c	how often to read (200 to 60000; 1000, the BIG zone's polling-delay)
+TMU_STOP	arg	tmu_stop	Chip, thermal and PMIC	k	hakios.exynos_tmu.c	step 3's limit for the SoC's zones (40 to 115; 110)
+TMU_UNGATE	arg	tmu_ungate	Chip, thermal and PMIC	k	hakios.exynos_tmu.c	open the TMU's PCLK gate if the boot left it forced shut
+TORCH	arg	torch	Haptics and torch	kl	hakios.s2mpb02_torch.c,hakios.sccam_torch.c,hakios.torch.c,loader.c	a look, reading only: the bus as found, the chip's ID, the flash block's registers, the two pins
+TORCH_MAX_S	arg	torch_max_s	Haptics and torch	k	hakios.s2mpb02_torch.c,hakios.torch.c	
+TORCH_SECS	arg	torch_secs	Haptics and torch	k	hakios.s2mpb02_torch.c,hakios.torch.c	
+TOUCH_FAULT	arg	touch_fault	User space	u	inject.c	the touch screen first made answers no "PrimaryUsagePage" (tests the remake)
+TOUCH_FLIP	arg	touch_flip	Touch and buttons	k	hakios.goodix.c	
+TOUCH_LAT	arg	touch_lat	GPU and display	ku	MiniIOMobileFramebuffer.cpp,eagl.c,hakios.goodix.c,hakios.gpu.cpp,hakios.input.c,inject.c,inject_sb.c	a line for every wait of a program's for the GPU that took a millisecond or more ("tl: f KIND US at US"), for telling apart what holds a frame up
+TOUCH_POLL_US	arg	touch_poll_us	Touch and buttons	k	hakios.goodix.c	
+TOUCH_RATE	arg	touch_rate	Touch and buttons	k	hakios.goodix.c	the chip reports twice as often (Xiaomi's game mode; 240 otherwise)
+TOUCH_SPI_HZ	arg	touch_spi_hz	Touch and buttons	k	hakios.goodix.c	the bus at N Hz (Android's device tree gives the chip 5 MHz)
+UCACHE_TRAP	arg	ucache_trap	User space	k	1511-m3-user-cache-pou.patch	
+UFS_BENCH	arg	ufs_bench	Storage and APFS	k	hakios.ufs.c	what one request through the loader costs, by size
+UFS_CHECK	arg	ufs_check	Storage and APFS	k	hakios.ufs.c	
+UFS_NATIVE	arg	ufs_native	Storage and APFS	kl	hakios.ufs.c,hakios.ufshc.c,loader.c	this kernel's own UFS driver has the controller for the run, no loader (1: beside UEFI's; 5: only look)
+UFS_NATIVE_BENCH	arg	ufs_native_bench	Storage and APFS	k	hakios.ufs.c	
+UFS_NATIVE_BUFFER	hex	ufs_native_buffer	Storage and APFS	k	hakios.ufshc.c	
+UFS_NATIVE_CHECK	arg	ufs_native_check	Storage and APFS	k	hakios.ufs.c	what this kernel's own driver reads is what the loader reads, byte for byte
+UFS_NATIVE_HANG	arg	ufs_native_hang	Storage and APFS	k	hakios.ufshc.c	
+UFS_NATIVE_LEAVE	arg	ufs_native_leave	Storage and APFS	k	hakios.ufshc.c	
+UFS_NATIVE_LOG	arg	ufs_native_log	Storage and APFS	k	hakios.ufs.c	
+UFS_NATIVE_RO	arg	ufs_native_ro	Storage and APFS	k	hakios.ufs.c	
+UFS_NATIVE_SLOTS	arg	ufs_native_slots	Storage and APFS	k	hakios.ufshc.c	
+UFS_NATIVE_SOAK	arg	ufs_native_soak	Storage and APFS	k	hakios.ufs.c	
+UFS_NATIVE_SOC	arg	ufs_native_soc	Storage and APFS	k	hakios.ufs.c,hakios.ufshc.c	the controller own mode takes: pci (QEMU's, the default), sm7325, exynos9810
+UFS_NATIVE_SPIN	arg	ufs_native_spin	Storage and APFS	k	hakios.ufshc.c	
+UFS_NATIVE_STEP	arg	ufs_native_step	Storage and APFS	k	hakios.ufshc.c	own mode goes as far as step N: 1 look, 2 the link, 3 NOP OUT, 4 READ CAPACITY, 5 all (the GPTs)
+UFS_NATIVE_TEST	arg	ufs_native_test	Storage and APFS	k	hakios.ufs.c	own mode's test at start: the refusals, and writes put back (2: one block left written)
+UFS_NATIVE_VERIFY	arg	ufs_native_verify	Storage and APFS	k	hakios.ufs.c	
+UFS_NATIVE_WRITE	arg	ufs_native_write	Storage and APFS	k	hakios.ufs.c	own mode: the one partition that takes writes, through /dev/rufs_NAME (never EFS, BOOT, PARAM ...)
+UFS_PROBE	arg	ufs_probe	Loader	l	loader.c	
+USB_GADGET	arg	usb_gadget	USB	k	hakios.dwc3.c	the steps (0, or none: nothing)
+USB_GADGET_CLK	arg	usb_gadget_clk	USB	k	hakios.dwc3.c	the glue may open a clock the boot left shut (Android's mux, divider and gate)
+USB_GADGET_CRLF	arg	usb_gadget_crlf	USB	k	hakios.dwc3.c	send the log's line ends as they are (LF) rather than CR LF
+USB_GADGET_DRAIN	arg	usb_gadget_drain	USB	k	hakios.dwc3.c	
+USB_GADGET_FS	arg	usb_gadget_fs	USB	k	hakios.dwc3.c	full speed (12 Mbit/s) instead of high speed
+USB_GADGET_LDO	arg	usb_gadget_ldo	USB	k	hakios.dwc3.c	the glue puts the PHY's supplies into Android's USB mode (S9: S2MPS18 LDO9-14 mode 3, read back)
+USB_GADGET_POLL	arg	usb_gadget_poll	USB	k	hakios.dwc3.c	the poll period while a host is attached (1-50; 2)
+USB_GADGET_SOC	arg	usb_gadget_soc	USB	k	hakios.dwc3.c	
+USB_GADGET_SUSPHY	arg	usb_gadget_susphy	USB	k	hakios.dwc3.c	let the link suspend the 2.0 PHY when idle (GUSB2PHYCFG SUSPHY, as Linux does; off by default)
+USTACKS	arg	ustacks	Debugging	k	user_exception_trace.c	
+USTACKS_AT	arg	ustacks_at	Debugging	k	user_exception_trace.c	
+USTACKS_COUNT	arg	ustacks_count	Debugging	k	user_exception_trace.c	
+USTACKS_MS	arg	ustacks_ms	Debugging	k	user_exception_trace.c	
+USTACKS_THREADS	arg	ustacks_threads	Debugging	k	user_exception_trace.c	
+USTACKS_TNAME	arg	ustacks_tname	Debugging	k	user_exception_trace.c	
+VAR_HFS	arg	var_hfs	User space	u	init.c	
+VAR_SAVE_MS	arg	var_save_ms	Storage and APFS	k	hakios.ufs.c	
+VAR_SEED	arg	var_seed	User space	u	init.c	the data volume starts from the seed in this image, share/var.seed, not from the empty template
+VBLUR	arg	vblur	GPU and display	u	eagl.c	
+VGPU_HEIGHT	arg	vgpu_height	User space	k	hakios.vgpu.c	
+VGPU_WIDTH	arg	vgpu_width	User space	k	hakios.vgpu.c	
+VIRTIO_BLK	arg	virtio_blk	Storage and APFS	k	hakios.virtio_blk.c	
+VIRTIO_BLK_RW	arg	virtio_blk_rw	Storage and APFS	k	hakios.virtio_blk.c	
+VIRTIO_CONSOLE	arg	virtio_console	User space	k	hakios.virtio_console.c	none. Without it: the first, when there is no UART.
+VIRTIO_INPUT	arg	virtio_input	Touch and buttons	k	hakios.virtio_input.c	
+VIRTIO_MMIO	arg	virtio_mmio	User space	k	hakios.virtio.c	
+VIRTIO_NET_SSID	arg	virtio_net_ssid	Network	k	hakios.virtio_net.c	
+VIRTIO_NET_WIFI	arg	virtio_net_wifi	Network	k	hakios.virtio_net.c	iOS is told that en0 is a radio, the way the phone's is (hakios.net.c, hakios.wlan.cpp, hakios.apple80211.c), and a station of this file's stands
+VIRTIO_POLL	arg	virtio_poll	User space	k	hakios.virtio.c	
+VIRTIO_SOUND	arg	virtio_sound	Audio and battery	k	hakios.virtio_sound.c	
+WDT	arg	wdt	Loader	l	loader.c	the Galaxy S9's hardware watchdog is not armed (a restart still goes to recovery: INFORM3 is written)
+WIFI_AGAIN	arg	wifi_again	Wi-Fi	k	hakios.wifi.c	start the DSP although the one before it was shut down without having acknowledged a stop: THAT HAS RESET THE PHONE, twice of two
+WIFI_ASK	arg	wifi_ask	Wi-Fi	k	hakios.wifi.c	step 14 also asks that service a question (its capabilities) and writes down the beginning of an answer
+WIFI_BA	arg	wifi_ba	Wi-Fi	k	lx_80211.c	
+WIFI_CAL	arg	wifi_cal	Wi-Fi	k	hakios.wlfw.c	
+WIFI_DIRTY	arg	wifi_dirty	Wi-Fi	k	hakios.wifi.c	
+WIFI_DMA_AT	arg	wifi_dma_at	Wi-Fi	k	hakios.lx.c	
+WIFI_FILE	arg	wifi_file	Wi-Fi	k	hakios.wifi.c	with wifi=1: the network of fw/network is not joined at the start
+WIFI_FINE	arg	wifi_fine	Wi-Fi	k	hakios.wifi.c	such a step waits like that before every single write and call
+WIFI_FW	arg	wifi_fw	Wi-Fi	k	hakios.brcmfmac.c	the station firmware's bcmdhd name, in fw/ or VENDOR (default bcmdhd_sta.bin_b2 for B2)
+WIFI_HOLD	arg	wifi_hold	Wi-Fi	k	lx_bus.c	
+WIFI_IRQ	arg	wifi_irq	Wi-Fi	k	lx_bus.c	
+WIFI_JOIN	arg	wifi_join	Wi-Fi	k	lx_bus.c	
+WIFI_KEEP	arg	wifi_keep	Wi-Fi	k	hakios.wifi.c	when the steps are over the DSP and the link stay up while the system runs, for whoever uses sys/hakios.qrtr.h; stopped when the run ends
+WIFI_LISTEN	arg	wifi_listen	Wi-Fi	k	hakios.wifi.c	how long step 14 waits for the Wi-Fi firmware's service (default 3)
+WIFI_LOUD	arg	wifi_loud	Wi-Fi	k	hakios.wifi.c	
+WIFI_LX	arg	wifi_lx	Wi-Fi	k	hakios.wifi.c,lx_bus.c	
+WIFI_LX_STEP	arg	wifi_lx_step	Wi-Fi	k	lx_base.c	
+WIFI_MAC	arg	wifi_mac	Wi-Fi	k	hakios.brcmfmac.c,hakios.wifi.c	the radio's own address for the driver (hakios_wifi_radio_address() below; xl takes it from a file that is not in the repository)
+WIFI_MISSION	arg	wifi_mission	Wi-Fi	k	hakios.wlfw.c	
+WIFI_NEW	arg	wifi_new	Wi-Fi	k	hakios.wifi.c	steps K and later have not been seen to work (default: the last one)
+WIFI_NVRAM	arg	wifi_nvram	Wi-Fi	k	hakios.brcmfmac.c	the NVRAM's name there (default: the module's, from the chip's OTP; else a guess, logged)
+WIFI_PAUSE	arg	wifi_pause	Wi-Fi	k	hakios.wifi.c	
+WIFI_PCIE	arg	wifi_pcie	Wi-Fi	k	hakios.exynos_pcie.c	a look, reading only: the PMU's isolation, CMU_FSYS1's gates and Q-channels, the five pins
+WIFI_PCIE_COHERENT	arg	wifi_pcie_coherent	Wi-Fi	k	hakios.exynos_pcie.c	
+WIFI_PCIE_MMU_BYPASS	arg	wifi_pcie_mmu_bypass	Wi-Fi	k	hakios.exynos_pcie.c	
+WIFI_PCIE_MMU_PROBE	arg	wifi_pcie_mmu_probe	Wi-Fi	k	hakios.exynos_pcie.c	
+WIFI_PCIE_TRIES	arg	wifi_pcie_tries	Wi-Fi	k	hakios.exynos_pcie.c	
+WIFI_PCIE_UNGATE	arg	wifi_pcie_ungate	Wi-Fi	k	hakios.exynos_pcie.c	
+WIFI_PSK	arg	wifi_psk	Wi-Fi	k	hakios.brcmfmac.c	its passphrase, the same way (8 to 63 bytes); never logged, but the command line is the image's
+WIFI_QUIET	arg	wifi_quiet	Wi-Fi	k	lx_bus.c	
+WIFI_RADIO_READ	arg	wifi_radio_read	Wi-Fi	k	hakios.wifi.c	step 16 does read (2: whatever mode the firmware is in)
+WIFI_READY	arg	wifi_ready	Wi-Fi	k	hakios.wlfw.c	
+WIFI_RETURN	arg	wifi_return	Wi-Fi	k	hakios.wifi.c	when all is over, go back to the loader instead of starting the system
+WIFI_SCAN	arg	wifi_scan	Wi-Fi	k	lx_bus.c	
+WIFI_SMMU	arg	wifi_smmu	Wi-Fi	k	hakios.wifi.c	before any step: read what the boot chain has set up in the SMMU for the radio's stream (smmu_look() below; nothing is written)
+WIFI_SSID	arg	wifi_ssid	Wi-Fi	k	hakios.brcmfmac.c	brcmfmac=8 without fw/network: the network's name, a byte as %XX (a space is %20)
+WIFI_STATION	arg	wifi_station	Wi-Fi	k	lx_bus.c	
+WIFI_STEP	arg	wifi_step	Wi-Fi	k	hakios.wifi.c	
+WIFI_VENDOR	arg	wifi_vendor	Wi-Fi	k	hakios.brcmfmac.c	never read the radio's files from the phone's VENDOR partition (default: read them there, ufs=2)
+WIFI_VENDOR_PART	arg	wifi_vendor_part	Wi-Fi	k	hakios.brcmfmac.c	the partition the radio's files are read from (default VENDOR)
+WIFI_WAIT	arg	wifi_wait	Wi-Fi	k	hakios.wifi.c	how long step 11 watches for the DSP to say that it is up (default 10)
+WIFI_WATCH	arg	wifi_watch	Wi-Fi	k	hakios.wifi.c	
+WIFI_WIDE	arg	wifi_wide	Wi-Fi	k	lx_80211.c	
+XPCPROXY_IDVERSION	arg	xpcproxy_idversion	CPU, memory and boot	k	(patch)	

@@ -1,0 +1,33 @@
+; Authored programmable blend: read this pixel's color and halve it exactly.
+OpCapability Shader
+OpCapability InputAttachment
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %out
+OpExecutionMode %main OriginUpperLeft
+OpDecorate %attachment DescriptorSet 0
+OpDecorate %attachment Binding 0
+OpDecorate %attachment InputAttachmentIndex 0
+OpDecorate %out Location 0
+%void = OpTypeVoid
+%fn = OpTypeFunction %void
+%float = OpTypeFloat 32
+%v4 = OpTypeVector %float 4
+%int = OpTypeInt 32 1
+%v2int = OpTypeVector %int 2
+%zero = OpConstant %int 0
+%where = OpConstantComposite %v2int %zero %zero
+%half = OpConstant %float 0.5
+%image = OpTypeImage %float SubpassData 0 0 0 2 Unknown
+%pimage = OpTypePointer UniformConstant %image
+%pout = OpTypePointer Output %float
+%attachment = OpVariable %pimage UniformConstant
+%out = OpVariable %pout Output
+%main = OpFunction %void None %fn
+%entry = OpLabel
+%input = OpLoad %image %attachment
+%color = OpImageRead %v4 %input %where
+%red = OpCompositeExtract %float %color 0
+%value = OpFMul %float %red %half
+OpStore %out %value
+OpReturn
+OpFunctionEnd

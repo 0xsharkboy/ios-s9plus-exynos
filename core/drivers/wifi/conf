@@ -1,0 +1,40 @@
+# drivers/wifi/conf: Wi-Fi.
+# CONFIG_HAKIOS_<NAME>=y in a defconfig builds a driver into the kernel; "standard" files are always built.
+# tools/hakios-config.py reads this file; docs/drivers-config.md says what each word means and how it reaches XNU.
+
+standard bsd/dev/hakios.lx.c
+	help    the kernel's side of a Linux Wi-Fi driver's object (sys/hakios.lx.h): memory, time, threads, the station.
+	help    What it asks of the radio (hakios_wifi_*() of sys/hakios.input.h) is the radio driver's: WIFI's (the WCN6750)
+	help    or BRCMFMAC's (the BCM4361); hakios.stubs.c answers for a kernel with neither, and for the station without
+	help    WIFI_STA. The object itself is linked in only with one of those two
+
+driver WIFI
+	file    bsd/dev/hakios.wifi.c
+	file    bsd/dev/hakios.wlfw.c
+	requires QMI WIFI_STA
+	help    Wi-Fi of the WCN6750 (wifi=1, wifi_step=N): the DSP that runs the radio's firmware, Linux's ath11k
+	help    (its object, made by tools/mk-ath11k.sh, is linked in only with this), a station, and the Apple80211
+	help    surface Darwin's wifid talks to. Needs fw-wifi/ from the phone
+
+driver WIFI_STA
+	file    bsd/dev/hakios.sta.c
+	file    bsd/dev/hakios.apple80211.c
+	file    iokit/Kernel/hakios.wlan.cpp iokitcpp
+	help    the station and the Apple80211 surface Darwin's wifid talks to, over whichever link is below: the WCN6750's
+	help    (WIFI) or QEMU's virtio network device seen as Wi-Fi (VIRTIO_NET, virtio_net_wifi=1)
+
+driver EXYNOS_PCIE
+	file    bsd/dev/hakios.exynos_pcie.c
+	help    the Galaxy S9's Wi-Fi, stage 1: the Exynos 9810's PCIe root complex of channel 0 (DesignWare and Samsung's
+	help    PHY), WLAN_REG_ON and PERST (active low), the link to the BCM4361 and its ID and BARs (wifi_pcie=N, 5 ends
+	help    stage 1, 6 hands the device to BRCMFMAC's driver); no firmware here (devices/starlte/WIFI.md)
+
+driver BRCMFMAC
+	file    bsd/dev/hakios.brcmfmac.c
+	requires EXYNOS_PCIE
+	help    the Galaxy S9's Wi-Fi, stage 2: Linux's brcmfmac on the BCM4361 (its object, made by tools/mk-brcmfmac.sh,
+	help    is linked in with this unless WIFI's is), on the device stage 1 hands over (wifi_pcie=6, brcmfmac=N, 8 steps:
+	help    4 the firmware's interface, 5 INTx, 6 the phone's address, 7 the station, 8 joining), with WIFI_STA above it
+	help    (without it there is no station to give Darwin),
+	help    and the radio unpowered on the way back to the loader. Needs the firmware, NVRAM and CLM of the user's own phone
+	help    in fw-wifi/ (WIFI.md of starlte)

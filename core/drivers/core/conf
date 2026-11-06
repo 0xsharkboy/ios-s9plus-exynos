@@ -1,0 +1,73 @@
+# drivers/core/conf: what is part of every kernel of this port, and the chip's identity.
+# CONFIG_HAKIOS_<NAME>=y in a defconfig builds a driver into the kernel; "standard" files are always built.
+# tools/hakios-config.py reads this file; docs/drivers-config.md says what each word means and how it reaches XNU.
+
+standard bsd/dev/hakios.version.c
+	help    kern.hakios.version, and the version in the boot log
+
+standard bsd/dev/hakios.platform.c
+	help    what the drivers share (the locks of the PMIC arbiter, the always-on processor, RPMh and the SMMU), and
+	help    kern.hakios.drivers, the list of the drivers built in
+
+standard bsd/dev/hakios.stubs.c
+	help    what the rest of the kernel calls in a driver that is left out: nothing, and "not there"
+
+standard iokit/Kernel/hakios.stubs.cpp iokitcpp
+	help    the same, for the calls that are C++ (the display asking whether the GPU is done with a surface)
+
+standard iokit/Kernel/hakios.physmap.cpp iokitcpp
+	help    physical memory XNU does not manage, mapped write-combined through IOKit (sys/hakios.physmap.h): the S9's
+	help    DMA buffers below 4 GB (the camera's, UFS's own mode; sys/hakios.exynos9810_mem.h has where each is)
+
+driver SOCINFO
+	file    bsd/dev/hakios.socinfo.c
+	help    the chip's identity from the firmware's shared memory: kern.hakios.soc_* (socinfo=1). Any Qualcomm SoC
+	help    that keeps SMEM item 137; where the shared memory is comes from soc_smem=
+
+standard bsd/dev/hakios.pci.c
+	help    the AVF guest's PCI bus: crosvm's virtio devices are found on it (patch 1100)
+
+standard bsd/dev/hakios.virtio.c
+	help    the virtio transport (PCI and MMIO) every virtio driver goes through: queues, interrupts, configuration
+
+standard bsd/dev/hakios.virtio_console.c
+	help    the virtio console, the AVF guest's boot log to the host
+
+driver EXYNOS_HSI2C
+	file    bsd/dev/hakios.exynos_hsi2c.c
+	help    an Exynos 9810 HSI2C (the I2C master of a USI block), for the Galaxy S9's touch screen and battery
+	help    (sys/hakios.exynos_hsi2c.h); nothing of its own on the command line
+
+driver EXYNOS_SPI
+	file    bsd/dev/hakios.exynos_spi.c
+	help    an Exynos 9810 SPI master (the SPI of a USI block), polled, the chip select by hand, for the Galaxy S9's
+	help    audio codec (sys/hakios.exynos_spi.h); nothing of its own on the command line
+
+driver EXYNOS_ACPM
+	file    bsd/dev/hakios.exynos_acpm.c
+	help    the Exynos 9810's power processor asked through its ACPM firmware: the S2MPS18 PMIC's registers and the
+	help    clocks' DVFS rates (sys/hakios.exynos_acpm.h), for the Galaxy S9's GPU; nothing of its own on the command line
+
+driver EXYNOS_M3
+	file    bsd/dev/hakios.exynos_m3.c
+	requires EXYNOS_ACPM
+	default n
+	help    the Galaxy S9's big cores (four Exynos M3s): the six CLUSTER1 fields of the PMU that Samsung's kernel writes
+	help    before it starts any other core, and the cluster's state logged before CPU_ON (m3_prep=N, the first N of 3
+	help    steps: read, write, start the M3s; patch 1508 asks it before every CPU_ON)
+	help    and cohtest=N, a check that the big cluster is coherent with the A55s once started (cached ping-pong,
+	help    cache maintenance by VA across the clusters, read back through an uncached alias), off by default
+
+driver USB_GADGET
+	file    bsd/dev/hakios.dwc3.c
+	default n
+	help    a USB device link for phones with a DesignWare DWC3: the kernel's log streamed to a host over a CDC-ACM serial
+	help    port (/dev/ttyACM0) and a line console back, in steps (usb_gadget=N, 5 for all); the SoC's half is a glue
+	help    driver (EXYNOS_USB). Device-neutral; descriptors and requests in hakios.usb_acm.h
+
+driver EXYNOS_USB
+	file    bsd/dev/hakios.exynos_usb.c
+	default n
+	requires USB_GADGET EXYNOS_ACPM
+	help    the Galaxy S9's USB port, the SoC's half for USB_GADGET: the Exynos 9810's PMU isolation, clocks and USB 2.0
+	help    PHY (the BSP's USB 3.1 CAL sequence), the SuperSpeed side held idle; usb_gadget_clk=1, usb_gadget_ldo=1

@@ -1,0 +1,47 @@
+; Authored full-screen triangle for the native Vulkan input-attachment test.
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main" %vertex %position
+OpDecorate %vertex BuiltIn VertexIndex
+OpMemberDecorate %pervertex 0 BuiltIn Position
+OpDecorate %pervertex Block
+%void = OpTypeVoid
+%fn = OpTypeFunction %void
+%float = OpTypeFloat 32
+%int = OpTypeInt 32 1
+%uint = OpTypeInt 32 0
+%v2 = OpTypeVector %float 2
+%v4 = OpTypeVector %float 4
+%zero = OpConstant %int 0
+%three = OpConstant %uint 3
+%fzero = OpConstant %float 0
+%fone = OpConstant %float 1
+%minus = OpConstant %float -1
+%plus = OpConstant %float 3
+%a = OpConstantComposite %v2 %minus %minus
+%b = OpConstantComposite %v2 %plus %minus
+%c = OpConstantComposite %v2 %minus %plus
+%array = OpTypeArray %v2 %three
+%points = OpConstantComposite %array %a %b %c
+%pervertex = OpTypeStruct %v4
+%pinput = OpTypePointer Input %int
+%poutput = OpTypePointer Output %pervertex
+%poutv4 = OpTypePointer Output %v4
+%parray = OpTypePointer Function %array
+%pv2 = OpTypePointer Function %v2
+%vertex = OpVariable %pinput Input
+%position = OpVariable %poutput Output
+%main = OpFunction %void None %fn
+%entry = OpLabel
+%local = OpVariable %parray Function
+OpStore %local %points
+%index = OpLoad %int %vertex
+%p = OpAccessChain %pv2 %local %index
+%xy = OpLoad %v2 %p
+%x = OpCompositeExtract %float %xy 0
+%y = OpCompositeExtract %float %xy 1
+%xyzw = OpCompositeConstruct %v4 %x %y %fzero %fone
+%out = OpAccessChain %poutv4 %position %zero
+OpStore %out %xyzw
+OpReturn
+OpFunctionEnd

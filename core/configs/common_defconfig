@@ -1,0 +1,1854 @@
+#
+# HakiOS common defconfig: every setting there is, with what it does.
+# Made by tools/hakios-config.py listing common -o <this file>; the values are the ones that file sets, and tests/CI check that it names every symbol.
+#
+# 589 symbols in 20 groups; 53 are set, 44 of them drivers built in.
+#
+
+#
+# Build facts (3)
+#
+
+# the directory of the phone under devices/ this configuration is for
+# CONFIG_DEVICE is not set
+
+# the SoC family (sc7280: SM7325, QCM6490); it is part of the kernel's version string
+# CONFIG_SOC is not set
+
+# "device": options may use firmware pulled from your own phone (fw-*/); "none": the open configuration, nothing of ...
+CONFIG_FIRMWARE="device"
+
+#
+# Drivers built in (52)
+#
+
+# the audio DSP started and linked (adsp=1, adsp_step=N); the battery's state comes through it too. Needs the DSP's ... [hakios.adsp.c]
+CONFIG_HAKIOS_ADSP=y
+
+# the two speaker amplifiers on I2C, and their watch of temperature and battery [hakios.speaker.c]
+CONFIG_HAKIOS_SPEAKER=y
+
+# the speakers' guard: what the samples go through on their way to the amplifiers where no DSP protects the speakers ... [hakios.guard.c]
+CONFIG_HAKIOS_GUARD=y
+
+# the speakers playing (sound=N): what the DSP's services are told, and the feeder, through the speakers' guard that ... [hakios.sound.c; requires CONFIG_HAKIOS_ADSP, CONFIG_HAKIOS_SPEAKER, CONFIG_HAKIOS_GUARD]
+CONFIG_HAKIOS_SOUND=y
+
+# the microphones, through the audio DSP (mic=N) [hakios.mic.c; requires CONFIG_HAKIOS_ADSP, CONFIG_HAKIOS_SOUND]
+CONFIG_HAKIOS_MIC=y
+
+# QEMU's virtio sound device as the player of /dev/hakios-audio (virtio_sound=1). QEMU only [hakios.virtio_sound.c]
+CONFIG_HAKIOS_VIRTIO_SOUND=y
+
+# the Galaxy S9's two speaker amplifiers (MAX98512s on PERIC1's HSI2C), handed to ABOX's UAIF1 (max98512=N: 1 a look, ... [hakios.max98512.c; requires CONFIG_HAKIOS_EXYNOS_HSI2C]
+CONFIG_HAKIOS_MAX98512=y
+
+# the Galaxy S9's speaker path through ABOX, Samsung's audio block, with its CPU off (abox=N, the first N of 8 steps: ... [hakios.exynos_abox.c; requires CONFIG_HAKIOS_GUARD, CONFIG_HAKIOS_EXYNOS_ACPM]
+CONFIG_HAKIOS_EXYNOS_ABOX=y
+
+# the Galaxy S9's audio codec, a Cirrus CS47L93 on PERIC0's SPI (cs47l93=N of 6 steps: 1 a look, 2 powered and its ID ... [hakios.cs47l93.c; requires CONFIG_HAKIOS_EXYNOS_SPI, CONFIG_HAKIOS_EXYNOS_ACPM]
+# CONFIG_HAKIOS_CS47L93 is not set
+
+# the Bluetooth half of the WCN6750: step one, a read-only look at its three pins (bt=1) [hakios.bt.c]
+CONFIG_HAKIOS_BT=y
+
+# the Galaxy S9's Bluetooth: the BCM4361's Bluetooth half on UART_BT (out of its USI reset), powered by BT_EN on the ... [hakios.bcm4361_bt.c, hakios.bt_node.cpp; requires CONFIG_HAKIOS_EXYNOS_HSI2C]
+CONFIG_HAKIOS_BCM4361_BT=y
+
+# the cameras (cam=N): the sensors on the CCI bus and the ISP's interface. The sensors, their tables (fw-camera/) and ... [hakios.camera.c]
+CONFIG_HAKIOS_CAMERA=y
+
+# the flashlight: the flash LED module of the PM8350C (torch=1); it stays off while the battery is too warm [hakios.torch.c]
+CONFIG_HAKIOS_TORCH=y
+
+# the Galaxy S9's flashlight: the S2MPB02's flash block on PERIC1's HSI2C, lit by a pin (torch=N there, the same steps ... [hakios.s2mpb02_torch.c; requires CONFIG_HAKIOS_EXYNOS_HSI2C]
+CONFIG_HAKIOS_S2MPB02_TORCH=y
+
+# the Galaxy S9's front camera, stages 1 to 3 (cam_s9=N): the S5K3H1's supplies on the S2MPB02, its reset and MCLK, ... [hakios.exynos_camera.c; requires CONFIG_HAKIOS_EXYNOS_HSI2C]
+# CONFIG_HAKIOS_EXYNOS_CAMERA is not set
+
+# the chip's identity from the firmware's shared memory: kern.hakios.soc_* (socinfo=1). Any Qualcomm SoC that keeps ... [hakios.socinfo.c]
+CONFIG_HAKIOS_SOCINFO=y
+
+# an Exynos 9810 HSI2C (the I2C master of a USI block), for the Galaxy S9's touch screen and battery ... [hakios.exynos_hsi2c.c]
+CONFIG_HAKIOS_EXYNOS_HSI2C=y
+
+# an Exynos 9810 SPI master (the SPI of a USI block), polled, the chip select by hand, for the Galaxy S9's audio codec ... [hakios.exynos_spi.c]
+CONFIG_HAKIOS_EXYNOS_SPI=y
+
+# the Exynos 9810's power processor asked through its ACPM firmware: the S2MPS18 PMIC's registers and the clocks' DVFS ... [hakios.exynos_acpm.c]
+CONFIG_HAKIOS_EXYNOS_ACPM=y
+
+# the Galaxy S9's big cores (four Exynos M3s): the six CLUSTER1 fields of the PMU that Samsung's kernel writes before ... [hakios.exynos_m3.c; requires CONFIG_HAKIOS_EXYNOS_ACPM]
+# CONFIG_HAKIOS_EXYNOS_M3 is not set
+
+# a USB device link for phones with a DesignWare DWC3: the kernel's log streamed to a host over a CDC-ACM serial port ... [hakios.dwc3.c]
+# CONFIG_HAKIOS_USB_GADGET is not set
+
+# the Galaxy S9's USB port, the SoC's half for USB_GADGET: the Exynos 9810's PMU isolation, clocks and USB 2.0 PHY ... [hakios.exynos_usb.c; requires CONFIG_HAKIOS_USB_GADGET, CONFIG_HAKIOS_EXYNOS_ACPM]
+# CONFIG_HAKIOS_EXYNOS_USB is not set
+
+# the Adreno 642L of the SC7280 woken step by step (adreno=N), and HakiosGPU, the IOKit service Mesa and the window ... [hakios.adreno.c, hakios.gpu.cpp]
+CONFIG_HAKIOS_ADRENO=y
+
+# the Galaxy S9's Mali-G72 MP18 (Exynos 9810) brought up step by step (mali=N, 9 for all), and HakiosMali, the IOKit ... [hakios.mali.c, hakios.mali.cpp; requires CONFIG_HAKIOS_EXYNOS_ACPM]
+CONFIG_HAKIOS_MALI=y
+
+# the Galaxy S9's display controller as the display's scan-out: frames flipped between buffers at the DECON's refresh, ... [hakios.exynos_dpu.c]
+CONFIG_HAKIOS_EXYNOS_DPU=y
+
+# the Galaxy S9's panel brightness through DSIM0's command FIFO: the gamma worked out from the panel's MTP as ... [hakios.s6e3ha8.c]
+CONFIG_HAKIOS_S6E3HA8=y
+
+# the vibration motor: an Awinic AW86927 driving a linear resonant actuator (haptic=N), its waveforms from fw-haptic/ [hakios.haptic.c]
+CONFIG_HAKIOS_HAPTIC=y
+
+# QEMU's virtio tablet and keyboard as the touch screen and the buttons (virtio_input=1). QEMU only [hakios.virtio_input.c]
+CONFIG_HAKIOS_VIRTIO_INPUT=y
+
+# the touch screen: a Goodix GT9916 ("Berlin-D") or a FocalTech FT3680 on SPI (touchscreen=1). The bus, pins and ... [hakios.goodix.c]
+CONFIG_HAKIOS_GOODIX=y
+
+# the power and volume keys, read from the PMIC through the SPMI arbiter (buttons=1) [hakios.buttons.c]
+CONFIG_HAKIOS_BUTTONS=y
+
+# the Galaxy S9's power, volume and Bixby keys, pins of the Exynos 9810's ALIVE GPIO block (exynos_keys=1). Bixby is ... [hakios.exynos_keys.c]
+CONFIG_HAKIOS_EXYNOS_KEYS=y
+
+# the Galaxy S9's touch screen: a Samsung S6SY761 on the Exynos 9810's HSI2C of USI03, the bus driven by this file ... [hakios.s6sy761.c; requires CONFIG_HAKIOS_EXYNOS_HSI2C, CONFIG_HAKIOS_EXYNOS_ACPM]
+CONFIG_HAKIOS_S6SY761=y
+
+# the Galaxy S9's sensors behind its sensor hub, the MCU of the BCM4775 GNSS chip on USI_CHUB00's SPI: powered, its ... [hakios.ssp.c; requires CONFIG_HAKIOS_EXYNOS_SPI, CONFIG_HAKIOS_EXYNOS_ACPM]
+# CONFIG_HAKIOS_SSP is not set
+
+# QMI messages over the IPC router: how the Wi-Fi firmware's service and the modem's are spoken to [hakios.qmi.c]
+CONFIG_HAKIOS_QMI=y
+
+# the modem (modem=1): started, its file systems served from the flash, the IPA's data path as en1, the SIM and the ... [hakios.mpss.c, hakios.cell.c, hakios.nas.c, hakios.ipa.c; requires CONFIG_HAKIOS_QMI, CONFIG_HAKIOS_UFS]
+CONFIG_HAKIOS_MODEM=y
+
+# QEMU's virtio network device as the link behind en0 (virtio_net=1). QEMU only [hakios.virtio_net.c; requires CONFIG_HAKIOS_WIFI_STA]
+CONFIG_HAKIOS_VIRTIO_NET=y
+
+# the battery: kern.hakios.battery_*, and HakiosBattery, the IOPMPowerSource Darwin reads the charge from (the state ... [hakios.battery.c, hakios.battery.cpp]
+CONFIG_HAKIOS_BATTERY=y
+
+# the clock of the cores the kernel runs on (cpufreq=1), and the memory bus's votes (ddr=) [hakios.cpufreq.c]
+CONFIG_HAKIOS_CPUFREQ=y
+
+# the SoC's temperature sensors (thermal=1): kern.hakios.thermal_*, and the run handed back to the loader when the ... [hakios.thermal.c]
+CONFIG_HAKIOS_THERMAL=y
+
+# the blocks of the power-management chips the SPMI arbiter shows, and the PMIC's clock (pmic=1); read only [hakios.pmic.c]
+CONFIG_HAKIOS_PMIC=y
+
+# the Galaxy S9's real-time clock, the S2MPS18 PMIC's RTC read through ACPM at start-up (rtc_pmic=1): the calendar ... [hakios.s2mps18_rtc.c; requires CONFIG_HAKIOS_EXYNOS_ACPM]
+# CONFIG_HAKIOS_S2MPS18_RTC is not set
+
+# the run handed back to the loader before the battery is flat (battery_stop=<percent>) [hakios.battguard.c]
+CONFIG_HAKIOS_BATTGUARD=y
+
+# the Galaxy S9's CPU frequency governor (cpufreq_gov=1): both clusters' rates moved with the load through ACPM's ... [hakios.exynos_cpufreq.c; requires CONFIG_HAKIOS_EXYNOS_ACPM]
+# CONFIG_HAKIOS_EXYNOS_CPUFREQ is not set
+
+# the Galaxy S9's battery: the fuel gauge and charger of its MAX77705, read (never written) over CMGP's HSI2C and ... [hakios.max77705.c; requires CONFIG_HAKIOS_EXYNOS_HSI2C, CONFIG_HAKIOS_BATTERY]
+CONFIG_HAKIOS_MAX77705=y
+
+# the Galaxy S9's temperatures: the Exynos 9810's TMU (BIG, LITTLE, G3D, ISP), read with each sensor's fuses (tmu=1), ... [hakios.exynos_tmu.c; requires CONFIG_HAKIOS_EXYNOS_POWEROFF]
+CONFIG_HAKIOS_EXYNOS_TMU=y
+
+# the Galaxy S9 powered off: PS_HOLD let go in the Exynos 9810's PMU, for the TMU's tmu_off=1 and for a halt ... [hakios.exynos_poweroff.c]
+CONFIG_HAKIOS_EXYNOS_POWEROFF=y
+
+# the phone's UFS flash: a block device for each GPT partition (ufs=1, ufs=2), and the UFS host controller driven from ... [hakios.ufs.c, hakios.ufshc.c, hakios.ext4.c]
+CONFIG_HAKIOS_UFS=y
+
+# a disk image of the host as /dev/rvblk0 (virtio_blk=1). QEMU only [hakios.virtio_blk.c]
+CONFIG_HAKIOS_VIRTIO_BLK=y
+
+# Wi-Fi of the WCN6750 (wifi=1, wifi_step=N): the DSP that runs the radio's firmware, Linux's ath11k (its object, made ... [hakios.wifi.c, hakios.wlfw.c; requires CONFIG_HAKIOS_QMI, CONFIG_HAKIOS_WIFI_STA]
+CONFIG_HAKIOS_WIFI=y
+
+# the station and the Apple80211 surface Darwin's wifid talks to, over whichever link is below: the WCN6750's (WIFI) ... [hakios.sta.c, hakios.apple80211.c, hakios.wlan.cpp]
+CONFIG_HAKIOS_WIFI_STA=y
+
+# the Galaxy S9's Wi-Fi, stage 1: the Exynos 9810's PCIe root complex of channel 0 (DesignWare and Samsung's PHY), ... [hakios.exynos_pcie.c]
+CONFIG_HAKIOS_EXYNOS_PCIE=y
+
+# the Galaxy S9's Wi-Fi, stage 2: Linux's brcmfmac on the BCM4361 (its object, made by tools/mk-brcmfmac.sh, is linked ... [hakios.brcmfmac.c; requires CONFIG_HAKIOS_EXYNOS_PCIE]
+CONFIG_HAKIOS_BRCMFMAC=y
+
+#
+# CPU, memory and boot (21)
+#
+
+# CPU cores the kernel uses, 1 to 8; one if not set
+# CONFIG_CPUS is not set
+
+# the core the kernel runs on, 0 to 7; 7 is the biggest core (the loader keeps core 0)
+# CONFIG_BOOTCPU is not set
+
+# set the boot core to its top speed
+# CONFIG_CPUFREQ is not set
+
+# read by the patch to Apple's files (kernel)
+# CONFIG_APPLOG is not set
+
+# read by the patch to Apple's files (kernel)
+# CONFIG_APPLOG_NAME is not set
+
+# every MS milliseconds, how busy each of our cores was meanwhile, in percent, to the loader's log (tools/frames.py ...
+# CONFIG_CPULOAD is not set
+
+# the memory's bus clock managers ("BCM") in the command database the boot loader left, with what is needed to vote ...
+# CONFIG_DDR is not set
+
+# read by hakios.cpufreq.c (kernel)
+# CONFIG_DDR_REST is not set
+
+# read by hakios.cpufreq.c (kernel)
+# CONFIG_DDR_VOTE is not set
+
+# read by GenericARMPE.cpp (kernel)
+# CONFIG_MACHINE_NAME is not set
+
+# read by hakios.cpufreq.c (kernel)
+# CONFIG_MEMBENCH is not set
+
+# read by the patch to Apple's files, 1100-virtio-pci-transport.patch, loader.c (kernel and loader)
+# CONFIG_RD is not set
+
+# read by the patch to Apple's files (kernel)
+# CONFIG_REGTRACE is not set
+
+# read by loader_return.c (kernel)
+# CONFIG_RETURN_CPU is not set
+
+# read by loader_return.c (kernel)
+# CONFIG_RETURN_PANIC is not set
+
+# read by the patch to Apple's files (kernel)
+# CONFIG_SMALL_CORES is not set
+
+# read by GenericARMPE.cpp (kernel)
+# CONFIG_SMALL_CORES_AFTER is not set
+
+# read by the patch to Apple's files (kernel)
+# CONFIG_SYSSLEEP is not set
+
+# read by the patch to Apple's files, user_exception_trace.c (kernel)
+# CONFIG_SYSTRACE is not set
+
+# read by the patch to Apple's files (kernel)
+# CONFIG_SYSTRACE_NAME is not set
+
+# read by the patch to Apple's files (kernel)
+# CONFIG_XPCPROXY_IDVERSION is not set
+
+#
+# Storage and APFS (53)
+#
+
+# the phone's storage: 1 a survey, read only; 2 the loader's block service, through which the kernel reads it (the ...
+CONFIG_UFS=2
+
+# let the kernel write, to the partition `darwin` (the Galaxy S9: `USERDATA`, all of it) and nowhere else (writes to ... [requires CONFIG_UFS=2|3]
+# CONFIG_UFS_WRITE is not set
+
+# keep /private/var across reboots, in the partition `darwin` [requires CONFIG_UFS_WRITE]
+# CONFIG_VAR_STORE is not set
+
+# read by apfs_vfsops.c (kernel)
+# CONFIG_APFS_CHEAP is not set
+
+# walk the whole volume and print only the totals
+# CONFIG_APFS_CHECK is not set
+
+# read by hakios.apfs_check.c (kernel)
+# CONFIG_APFS_CHUNK is not set
+
+# no file is read at all, only looked up and stat'ed -- how long the walk itself takes, the directories and the inodes
+# CONFIG_APFS_CONTENTS is not set
+
+# go no deeper than N levels below where the walk starts (1 = only the entries of that directory; 0 = no limit)
+# CONFIG_APFS_DEPTH is not set
+
+# the device to mount for modes 1 to 3 and 6 (default rvblk0)
+# CONFIG_APFS_DEV is not set
+
+# read by hakios.apfs_check.c (kernel)
+# CONFIG_APFS_HASH is not set
+
+# stop after N entries (and say how memory stood on the way): for finding out what a walk that never comes back runs ...
+# CONFIG_APFS_MAX is not set
+
+# read by apfs_vfsops.c (kernel)
+# CONFIG_APFS_META_CLUSTER is not set
+
+# where to mount it for mode 6 (default /private/var/apfs-check)
+# CONFIG_APFS_MNT is not set
+
+# at most N threads on one request, the caller's included (default: four, or the processors if fewer -- see ...
+# CONFIG_APFS_PAR is not set
+
+# read by apfs_vfsops.c (kernel)
+# CONFIG_APFS_ROOT_C is not set
+
+# read by apfs_vfsops.c (kernel)
+# CONFIG_APFS_ROOT_V is not set
+
+# read by apfs_vfsops.c (kernel)
+# CONFIG_APFS_ROUND is not set
+
+# directories not to go into, as paths inside the volume, comma separated
+# CONFIG_APFS_SKIP is not set
+
+# read by hakios.sparse.c (kernel)
+# CONFIG_APFS_SPARSE is not set
+
+# how many bytes of payload (default 40000)
+# CONFIG_APFS_STORE_LEN is not set
+
+# the writer's own number, kept in the header (default 0)
+# CONFIG_APFS_STORE_NOTE is not set
+
+# which pattern (default 1); a different seed is a different payload
+# CONFIG_APFS_STORE_SEED is not set
+
+# walk only that part of the volume
+# CONFIG_APFS_SUBTREE is not set
+
+# how many, for mode 5 (default 4)
+# CONFIG_APFS_THREADS is not set
+
+# read by apfs_vfsops.c (kernel)
+# CONFIG_APFS_UBC_READ is not set
+
+# a volume for user space in an ordinary boot
+# CONFIG_APFS_VOLUME is not set
+
+# read by hakios.apfs_check.c (kernel)
+# CONFIG_APFS_VOLUME_AT is not set
+
+# one of N walkers; a subdirectory is left on the shared stack (par_push)
+# CONFIG_APFS_WALKERS is not set
+
+# where in the file (default 0)
+# CONFIG_APFS_WRITE_AT is not set
+
+# what to fill them with (default 0xa5)
+# CONFIG_APFS_WRITE_BYTE is not set
+
+# how many bytes (default 4096, at most APFS_WRITE_MAX)
+# CONFIG_APFS_WRITE_LEN is not set
+
+# the file in it, by path from the volume's root
+# CONFIG_APFS_WRITE_PATH is not set
+
+# what one request through the loader costs, by size
+# CONFIG_UFS_BENCH is not set
+
+# read by hakios.ufs.c (kernel)
+# CONFIG_UFS_CHECK is not set
+
+# this kernel's own UFS driver has the controller for the run, no loader (1: beside UEFI's; 5: only look)
+# CONFIG_UFS_NATIVE is not set
+
+# read by hakios.ufs.c (kernel)
+# CONFIG_UFS_NATIVE_BENCH is not set
+
+# read by hakios.ufshc.c (kernel)
+# CONFIG_UFS_NATIVE_BUFFER is not set
+
+# what this kernel's own driver reads is what the loader reads, byte for byte
+# CONFIG_UFS_NATIVE_CHECK is not set
+
+# read by hakios.ufshc.c (kernel)
+# CONFIG_UFS_NATIVE_HANG is not set
+
+# read by hakios.ufshc.c (kernel)
+# CONFIG_UFS_NATIVE_LEAVE is not set
+
+# read by hakios.ufs.c (kernel)
+# CONFIG_UFS_NATIVE_LOG is not set
+
+# read by hakios.ufs.c (kernel)
+# CONFIG_UFS_NATIVE_RO is not set
+
+# read by hakios.ufshc.c (kernel)
+# CONFIG_UFS_NATIVE_SLOTS is not set
+
+# read by hakios.ufs.c (kernel)
+# CONFIG_UFS_NATIVE_SOAK is not set
+
+# the controller own mode takes: pci (QEMU's, the default), sm7325, exynos9810
+# CONFIG_UFS_NATIVE_SOC is not set
+
+# read by hakios.ufshc.c (kernel)
+# CONFIG_UFS_NATIVE_SPIN is not set
+
+# own mode goes as far as step N: 1 look, 2 the link, 3 NOP OUT, 4 READ CAPACITY, 5 all (the GPTs)
+# CONFIG_UFS_NATIVE_STEP is not set
+
+# own mode's test at start: the refusals, and writes put back (2: one block left written)
+# CONFIG_UFS_NATIVE_TEST is not set
+
+# read by hakios.ufs.c (kernel)
+# CONFIG_UFS_NATIVE_VERIFY is not set
+
+# own mode: the one partition that takes writes, through /dev/rufs_NAME (never EFS, BOOT, PARAM ...)
+# CONFIG_UFS_NATIVE_WRITE is not set
+
+# read by hakios.ufs.c (kernel)
+# CONFIG_VAR_SAVE_MS is not set
+
+# read by hakios.virtio_blk.c (kernel)
+# CONFIG_VIRTIO_BLK is not set
+
+# read by hakios.virtio_blk.c (kernel)
+# CONFIG_VIRTIO_BLK_RW is not set
+
+#
+# Touch and buttons (17)
+#
+
+# the touch screen, and the power and volume buttons
+CONFIG_TOUCHSCREEN=y
+
+# read by hakios.buttons.c (kernel)
+# CONFIG_BUTTONS is not set
+
+# read by hakios.buttons.c (kernel)
+# CONFIG_BUTTONS_STEPS is not set
+
+# read by hakios.exynos_keys.c (kernel)
+# CONFIG_EXYNOS_KEYS is not set
+
+# a short press of the power key that many seconds after boot, and another ten seconds later, given to Darwin as the ...
+# CONFIG_PRESS_POWER is not set
+
+# read by hakios.buttons.c (kernel)
+# CONFIG_PRESS_POWER_MS is not set
+
+# every address below belongs to this phone
+# CONFIG_S6SY761 is not set
+
+# the HSI2C's input clock, if step 1 says it is not the 200 MHz both other drivers assume
+# CONFIG_S6SY761_IPCLK is not set
+
+# read by hakios.s6sy761.c (kernel)
+# CONFIG_S6SY761_LDO is not set
+
+# the polling thread's priority. Default 92 (BASEPRI_PREEMPT, as the display's presenter, fb_pri)
+# CONFIG_S6SY761_PRI is not set
+
+# read by hakios.s6sy761.c (kernel)
+# CONFIG_S6SY761_STEPS is not set
+
+# the first N finger events said, with the time (ms, the 24 MHz counter), to measure the rate
+# CONFIG_S6SY761_TRACE is not set
+
+# read by hakios.goodix.c (kernel)
+# CONFIG_TOUCH_FLIP is not set
+
+# read by hakios.goodix.c (kernel)
+# CONFIG_TOUCH_POLL_US is not set
+
+# the chip reports twice as often (Xiaomi's game mode; 240 otherwise)
+# CONFIG_TOUCH_RATE is not set
+
+# the bus at N Hz (Android's device tree gives the chip 5 MHz)
+# CONFIG_TOUCH_SPI_HZ is not set
+
+# read by hakios.virtio_input.c (kernel)
+# CONFIG_VIRTIO_INPUT is not set
+
+#
+# GPU and display (105)
+#
+
+# rendering on Adreno (an image built with GL=1; the GPU's firmware from your phone) [needs fw-gpu/ from the phone]
+CONFIG_GPU=y
+
+# read by hakios.adreno.c (kernel)
+# CONFIG_ADRENO is not set
+
+# read by hakios.adreno.c (kernel)
+# CONFIG_ADRENO_BLIND is not set
+
+# read by hakios.adreno.c (kernel)
+# CONFIG_ADRENO_DIRTY is not set
+
+# the newest step waits like that before every single access
+# CONFIG_ADRENO_FINE is not set
+
+# read by hakios.adreno.c (kernel)
+# CONFIG_ADRENO_KEEP is not set
+
+# step K alone (what steps 6 to 10 need, they check for themselves: within one session of the loader, power and clocks ...
+# CONFIG_ADRENO_ONLY is not set
+
+# how long the newest step waits after announcing a group of accesses (default 2200)
+# CONFIG_ADRENO_PAUSE is not set
+
+# when all is over, go back to the loader instead of starting the system
+# CONFIG_ADRENO_RETURN is not set
+
+# leave out the steps whose bits are set (bit 2 = step 2)
+# CONFIG_ADRENO_SKIP is not set
+
+# step 17 asks the GMU for the 3D core's Nth speed: 1 315 MHz, 2 450 MHz, 3 550 MHz (the default: the most this ...
+# CONFIG_ADRENO_SPEED is not set
+
+# step 18 leaves the core's second stream out (0) or gives it an empty context of its own (2): what the SMMU then ...
+# CONFIG_ADRENO_STREAM1 is not set
+
+# after the last step, say once a second for S seconds (default 20) that the machine is still alive, and what was ...
+# CONFIG_ADRENO_WATCH is not set
+
+# read by hakios.backlight.cpp (kernel)
+# CONFIG_BACKLIGHT is not set
+
+# before any step: read what the firmware left the display controller doing (display_probe() below; two clocks are ...
+# CONFIG_DISPLAY_PROBE is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_BEAT is not set
+
+# the refresh rate told to CoreAnimation (IOMFBDisplayRefresh) when it is not to be fb_hz's
+# CONFIG_FB_CA_HZ is not set
+
+# which pixels of the panel each frame changed (it costs: the panel's memory is slow to read)
+# CONFIG_FB_DIFF is not set
+
+# three buffers of the display's size (the iPhone's 1125 x 2436): a frame is copied into one, not scaled
+# CONFIG_FB_DPP is not set
+
+# the picture is scaled to the panel nearest neighbour, as it once was
+# CONFIG_FB_FILTER is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_FLIP is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_HZ is not set
+
+# how often the panel is really refreshed
+# CONFIG_FB_MEASURE is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_PRI is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_QUEUE is not set
+
+# the thread handing the swaps over made real-time, once for each such thread: a period of a refresh, fb_rt_us
+# CONFIG_FB_RT is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_RT_US is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_SWAPWAIT is not set
+
+# the kernel's timer coalescing left on
+# CONFIG_FB_TCOAL is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_THREADS is not set
+
+# the surface VGF0 scans out now, and the one flipped to and not yet taken (each held, its use count raised)
+# CONFIG_FB_ZC is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FB_ZC_HOLD is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FBHEIGHT is not set
+
+# the same 375 x 812 points drawn at two pixels a point instead of three
+# CONFIG_FBSCALE is not set
+
+# log the first N calls of every selector (default 3)
+# CONFIG_FBTRACE is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_FBWIDTH is not set
+
+# a line a second while frames come ("fps: ...", in the loader's log and the kernel's): swaps
+# CONFIG_FPS_LOG is not set
+
+# the surface's memory, as before
+# CONFIG_GLBLIT is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLCENSUS is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLCOPY is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLENV is not set
+
+# ask the library for an error after every call, for the first 600 frames
+# CONFIG_GLERRORS is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLFETCH is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLFRAMES is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLGROUP is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLNUMBERS is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLPACE is not set
+
+# leave such draws as they are; 2: also those without a texture; 3: the two with a colour matrix drawn plainly too
+# CONFIG_GLPLAIN is not set
+
+# as the shaders say.
+# CONFIG_GLPRECISION is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLPROF is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLSHADERS is not set
+
+# the first texture of that size there is (names are handed out afresh every run)
+# CONFIG_GLSHOW is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLSHOW_PART is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLSHOW_ZOOM is not set
+
+# the draws of those programs are left out of the picture, which says what in it is their work
+# CONFIG_GLSKIP is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLSLOW is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLSTILL is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLSURFACES is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLSURFACES_MB is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLSYNC is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLTRACE is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLTRACE_AT is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLTRACE_CORNERS is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLTRACE_DRAWS is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLTRACE_FRAMES is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLTRACE_FUNCTION is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLTRACE_LIT is not set
+
+# the pixel a listed draw has left in the middle of itself (the matrix is CoreAnimation's, the last it gave)
+# CONFIG_GLTRACE_LOOK is not set
+
+# a line about a draw, if any of its first corners is inside the rectangle (or the rectangle inside them)
+# CONFIG_GLTRACE_PLACE is not set
+
+# the text of the shaders the program of a traced draw is made of, the first time that program draws
+# CONFIG_GLTRACE_SHADERS is not set
+
+# what the program of a traced draw was given, by the names its shaders use (coord_arg, texmat0, ...)
+# CONFIG_GLTRACE_UNIFORMS is not set
+
+# read by eagl.c (user space)
+# CONFIG_GLWAIT is not set
+
+# read by hakios.gpu.cpp (kernel)
+# CONFIG_GPU_CACHED is not set
+
+# read by hakios.adreno.c (kernel)
+# CONFIG_GPU_EXACT is not set
+
+# read by hakios.gpu.cpp (kernel)
+# CONFIG_GPU_KEEP is not set
+
+# read by hakios.adreno.c (kernel)
+# CONFIG_GPU_LOG is not set
+
+# a submission the core never finishes does not cost the rest of the run
+# CONFIG_GPU_RECOVER is not set
+
+# read by hakios.adreno.c (kernel)
+# CONFIG_GPU_VA is not set
+
+# the first N of the GPU's nine steps of bring-up (9: all, then served); 0 or none: left alone
+# CONFIG_MALI is not set
+
+# the rail not raised: the GPU is touched at the boot's voltage, which hung the S9+ (a test only)
+# CONFIG_MALI_ACPM is not set
+
+# the GPU walks its tables through its own caches, and every buffer entered is an UPDATE of AS 0
+# CONFIG_MALI_FASTMAP is not set
+
+# read by hakios.mali.cpp (kernel)
+# CONFIG_MALI_FLUSH is not set
+
+# read by hakios.mali.c (kernel)
+# CONFIG_MALI_GOV is not set
+
+# read by hakios.mali.c (kernel)
+# CONFIG_MALI_GOV_FRAME is not set
+
+# the GPU's clock: 260 (S-Boot's, the default), 455 or 572, the S9+ port's three rates
+# CONFIG_MALI_MHZ is not set
+
+# read by hakios.mali.c (kernel)
+# CONFIG_MALI_NAP_US is not set
+
+# PLL_G3D left as the boot left it (the step stops if it does not run)
+# CONFIG_MALI_PLL is not set
+
+# a line for every job: "tl: j SEQ f|v q QUEUED b BEGAN e ENDED", in microseconds
+# CONFIG_MALI_TRACE is not set
+
+# BUCK6 target in microvolts, 300000..950000 in 6250-uV steps (default 950000)
+# CONFIG_MALI_UV is not set
+
+# say where Metal's device is (docs/metal-plan.md, step 1)
+# CONFIG_METAL is not set
+
+# the driver: without it nothing here runs
+# CONFIG_PANEL is not set
+
+# a brightness of 0-255 set once at start
+# CONFIG_PANEL_BRIGHTNESS is not set
+
+# gamma and AOR sent (the default)
+# CONFIG_PANEL_GAMMA is not set
+
+# all 74 rows in the log, as Android's kernel prints them at start ("gamma[nits] : ...") to set beside Android's log ...
+# CONFIG_PANEL_GAMMA_LOG is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_REC_MB is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_REC_RING is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_REC_SECS is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_REC_START is not set
+
+# read by MiniIOMobileFramebuffer.cpp (kernel)
+# CONFIG_REC_STEP is not set
+
+# kept memory is given out as it is (to see what the clearing costs; a surface is then not all zeroes)
+# CONFIG_SURF_CLEAR is not set
+
+# surfaces around the client's pictures refused, as before methodWrapClientImage (for comparing)
+# CONFIG_SURF_WRAP is not set
+
+# log the first N surfaces created (default 24)
+# CONFIG_SURFTRACE is not set
+
+# read by MiniIOSurface.cpp (kernel)
+# CONFIG_SURFTRACE_OF is not set
+
+# a line for every wait of a program's for the GPU that took a millisecond or more ("tl: f KIND US at US"), for ...
+# CONFIG_TOUCH_LAT is not set
+
+# read by eagl.c (user space)
+# CONFIG_VBLUR is not set
+
+#
+# Audio and battery (60)
+#
+
+# the audio DSP; the battery level in the UI and charging state come through it [needs fw-audio/ from the phone]
+CONFIG_ADSP=y
+
+# the speakers (4 is what the README's phone line uses) [needs fw-audio/ from the phone] [requires CONFIG_ADSP]
+CONFIG_SOUND=4
+
+# the microphone (4 is what the README's phone line uses) [needs fw-audio/ from the phone] [requires CONFIG_ADSP]
+# CONFIG_MIC is not set
+
+# hand control back to the loader when the battery is at or below this percent three looks in a row (0: never); acts ...
+# CONFIG_BATTERY_STOP is not set
+
+# how often the battery guard looks, in seconds (5 to 600; 20) [requires CONFIG_BATTERY_STOP]
+# CONFIG_BATTERY_STOP_POLL is not set
+
+# the first N of ABOX's eight steps (1 only looks, 7 plays a tone, 8 serves iOS); 0 or none: left alone
+# CONFIG_ABOX is not set
+
+# ABOX never gates UAIF1's BCLK (QCHANNEL_DISABLE bit 3), as Samsung does for UAIF0 while it plays
+# CONFIG_ABOX_BCLK_ON is not set
+
+# RDMA0's CTRL0 BURST_LEN [22:19], 1 to 15 (8, set only when it reads 0; given, set anyway; 0: left)
+# CONFIG_ABOX_BURST is not set
+
+# ACPM's AUD DVFS domain (index 9) set to this before step 3 (none: left as found, only read)
+# CONFIG_ABOX_DVFS is not set
+
+# eighths of a dB of gain before the speakers' guard, 0 to 96 (0)
+# CONFIG_ABOX_GAIN is not set
+
+# with abox=8: /dev/hakios-mic, the codec's main microphone for iOS, recorded through UAIF0 and WDMA1
+# CONFIG_ABOX_MIC is not set
+
+# refuse a translating SysMMU instead of switching it off (1: CTRL 0, as found needed on the S9)
+# CONFIG_ABOX_MMU_OFF is not set
+
+# bits of RDMA0's CTRL0 besides ENABLE, to try a format there (none: as it reads after reset)
+# CONFIG_ABOX_RDMA_CTRL0 is not set
+
+# RDMA0's CTRL1 (none: as it reads after reset)
+# CONFIG_ABOX_RDMA_CTRL1 is not set
+
+# leave RDMA0 CTRL0's FORMAT/FUNC/BUF_UPDATE and SBANK_LIMIT as they read (1: calliope's values)
+# CONFIG_ABOX_RDMA_FMT is not set
+
+# the ring at this physical address of abox_rmem (0xFB200000 + 40 MB) instead of the kernel's memory
+# CONFIG_ABOX_RING_PA is not set
+
+# UAIF1 from SIFS0, the mixer (SPUS_CTRL0 OUT 1, MIXP_FORMAT, ROUTE_CTRL0 [7:4] = 1), instead of SIFS1
+# CONFIG_ABOX_ROUTE is not set
+
+# read by hakios.exynos_abox.c (kernel)
+# CONFIG_ABOX_SBANK is not set
+
+# how long step 7 plays its tone, 1 to 10 seconds (3)
+# CONFIG_ABOX_SECS is not set
+
+# leave SYSPOWER_CTRL ("DRAM on") and the ACLK/BCLK_UAIF1 Q-channels alone while streaming (1: set)
+# CONFIG_ABOX_SYSPOWER is not set
+
+# RDMA0's VOL_FACTOR [23:0] (none: 0x800000 if it reads 0, else left)
+# CONFIG_ABOX_VOL is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_AGAIN is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_APR_WAIT is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_KEEP is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_LISTEN is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_NEW is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_PAUSE is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_RETURN is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_STEP is not set
+
+# read by hakios.adsp.c (kernel)
+# CONFIG_ADSP_WAIT is not set
+
+# read by hakios.adsp.c, hakios.battery.c, hakios.scfb_battery.c, loader.c (kernel and loader)
+# CONFIG_BATTERY is not set
+
+# every property once, for the log (which number is which on this phone's firmware)
+# CONFIG_BATTMGR is not set
+
+# the first N steps (1 looks, 2 powers the codec and reads its ID, 6 makes the microphone ready)
+# CONFIG_CS47L93 is not set
+
+# read by hakios.cs47l93.c (kernel)
+# CONFIG_CS47L93_DIV is not set
+
+# the headphones (THE HEADPHONES below): Cirrus's register patch at power-up, then, once the six
+# CONFIG_CS47L93_HP is not set
+
+# OUT2's digital volume, 0x80 0 dB, 0.5 dB a step, at most 0x80 (0x68: -12 dB); iOS's own volume
+# CONFIG_CS47L93_HP_VOL is not set
+
+# IN3L's digital volume, 0x80 0 dB, 0.5 dB a step, at most 0xBF (0x90, +8 dB)
+# CONFIG_CS47L93_MIC_VOL is not set
+
+# read by hakios.max77705.c (kernel)
+# CONFIG_MAX77705 is not set
+
+# read by hakios.max77705.c (kernel)
+# CONFIG_MAX77705_HAPTIC is not set
+
+# read by hakios.max77705.c (kernel)
+# CONFIG_MAX77705_IPCLK is not set
+
+# read by hakios.max77705.c (kernel)
+# CONFIG_MAX77705_STEPS is not set
+
+# read by hakios.max77705.c (kernel)
+# CONFIG_MAX77705_USBSW is not set
+
+# a look: the bus brought up (its clocks, the USI, the pins), both chips' revisions and registers
+# CONFIG_MAX98512 is not set
+
+# the bottom speaker's gain at start, 1 to 5 (+3 to +15 dB; 1); the top one's is always 1
+# CONFIG_MAX98512_GAIN is not set
+
+# read by hakios.mic.c (kernel)
+# CONFIG_MIC_ADC is not set
+
+# read by hakios.mic.c (kernel)
+# CONFIG_MIC_INPUT is not set
+
+# read by hakios.mic.c (kernel)
+# CONFIG_MIC_MAIN is not set
+
+# read by hakios.mic.c (kernel)
+# CONFIG_MIC_SECS is not set
+
+# read by hakios.mic.c (kernel)
+# CONFIG_MIC_TAP is not set
+
+# read by hakios.mic.c (kernel)
+# CONFIG_MIC_TEST is not set
+
+# read by hakios.audio.c (kernel)
+# CONFIG_REC_SOUND is not set
+
+# read by hakios.audio.c (kernel)
+# CONFIG_REC_SOUND_FED is not set
+
+# read by hakios.audio.c (kernel)
+# CONFIG_REC_SOUND_MIC is not set
+
+# read by hakios.sound.c (kernel)
+# CONFIG_SOUND_BELOW is not set
+
+# read by hakios.sound.c (kernel)
+# CONFIG_SOUND_GAIN is not set
+
+# read by hakios.sound.c (kernel)
+# CONFIG_SOUND_GUARD_AS is not set
+
+# read by hakios.sound.c (kernel)
+# CONFIG_SOUND_PAUSE is not set
+
+# read by hakios.sound.c (kernel)
+# CONFIG_SOUND_SECS is not set
+
+# reads registers and nothing else: the pins, the power names (below)
+# CONFIG_SPEAKER_PROBE is not set
+
+# read by hakios.virtio_sound.c (kernel)
+# CONFIG_VIRTIO_SOUND is not set
+
+#
+# Wi-Fi (49)
+#
+
+# Wi-Fi: the radio, its driver, a connection (also fw-wifi/mac and fw-wifi/network) [needs fw-wifi/ from the phone]
+CONFIG_WIFI=y
+
+# brcmfmac's probe: its PCI device table, BAR0 and BAR1 mapped, bus mastering on, the chip's ID
+# CONFIG_BRCMFMAC is not set
+
+# read by lx_brcmf.c (kernel)
+# CONFIG_BRCMFMAC_DEBUG is not set
+
+# read by lx_pci.c (kernel)
+# CONFIG_BRCMFMAC_POLL is not set
+
+# read by lx_pci.c (kernel)
+# CONFIG_BRCMFMAC_POLL_MS is not set
+
+# the rings' indices stay in the chip's RAM, not written into ours by its DMA (lx-state.patch)
+# CONFIG_BRCMFMAC_TCM_IDX is not set
+
+# start the DSP although the one before it was shut down without having acknowledged a stop: THAT HAS RESET THE PHONE, ...
+# CONFIG_WIFI_AGAIN is not set
+
+# step 14 also asks that service a question (its capabilities) and writes down the beginning of an answer
+# CONFIG_WIFI_ASK is not set
+
+# read by lx_80211.c (kernel)
+# CONFIG_WIFI_BA is not set
+
+# read by hakios.wlfw.c (kernel)
+# CONFIG_WIFI_CAL is not set
+
+# read by hakios.wifi.c (kernel)
+# CONFIG_WIFI_DIRTY is not set
+
+# read by hakios.lx.c (kernel)
+# CONFIG_WIFI_DMA_AT is not set
+
+# with wifi=1: the network of fw/network is not joined at the start
+# CONFIG_WIFI_FILE is not set
+
+# such a step waits like that before every single write and call
+# CONFIG_WIFI_FINE is not set
+
+# the station firmware's bcmdhd name, in fw/ or VENDOR (default bcmdhd_sta.bin_b2 for B2)
+# CONFIG_WIFI_FW is not set
+
+# read by lx_bus.c (kernel)
+# CONFIG_WIFI_HOLD is not set
+
+# read by lx_bus.c (kernel)
+# CONFIG_WIFI_IRQ is not set
+
+# read by lx_bus.c (kernel)
+# CONFIG_WIFI_JOIN is not set
+
+# when the steps are over the DSP and the link stay up while the system runs, for whoever uses sys/hakios.qrtr.h; ...
+# CONFIG_WIFI_KEEP is not set
+
+# how long step 14 waits for the Wi-Fi firmware's service (default 3)
+# CONFIG_WIFI_LISTEN is not set
+
+# read by hakios.wifi.c (kernel)
+# CONFIG_WIFI_LOUD is not set
+
+# read by hakios.wifi.c, lx_bus.c (kernel)
+# CONFIG_WIFI_LX is not set
+
+# read by lx_base.c (kernel)
+# CONFIG_WIFI_LX_STEP is not set
+
+# the radio's own address for the driver (hakios_wifi_radio_address() below; xl takes it from a file that is not in ...
+# CONFIG_WIFI_MAC is not set
+
+# read by hakios.wlfw.c (kernel)
+# CONFIG_WIFI_MISSION is not set
+
+# steps K and later have not been seen to work (default: the last one)
+# CONFIG_WIFI_NEW is not set
+
+# the NVRAM's name there (default: the module's, from the chip's OTP; else a guess, logged)
+# CONFIG_WIFI_NVRAM is not set
+
+# read by hakios.wifi.c (kernel)
+# CONFIG_WIFI_PAUSE is not set
+
+# a look, reading only: the PMU's isolation, CMU_FSYS1's gates and Q-channels, the five pins
+# CONFIG_WIFI_PCIE is not set
+
+# read by hakios.exynos_pcie.c (kernel)
+# CONFIG_WIFI_PCIE_COHERENT is not set
+
+# read by hakios.exynos_pcie.c (kernel)
+# CONFIG_WIFI_PCIE_MMU_BYPASS is not set
+
+# read by hakios.exynos_pcie.c (kernel)
+# CONFIG_WIFI_PCIE_MMU_PROBE is not set
+
+# read by hakios.exynos_pcie.c (kernel)
+# CONFIG_WIFI_PCIE_TRIES is not set
+
+# read by hakios.exynos_pcie.c (kernel)
+# CONFIG_WIFI_PCIE_UNGATE is not set
+
+# its passphrase, the same way (8 to 63 bytes); never logged, but the command line is the image's
+# CONFIG_WIFI_PSK is not set
+
+# read by lx_bus.c (kernel)
+# CONFIG_WIFI_QUIET is not set
+
+# step 16 does read (2: whatever mode the firmware is in)
+# CONFIG_WIFI_RADIO_READ is not set
+
+# read by hakios.wlfw.c (kernel)
+# CONFIG_WIFI_READY is not set
+
+# when all is over, go back to the loader instead of starting the system
+# CONFIG_WIFI_RETURN is not set
+
+# read by lx_bus.c (kernel)
+# CONFIG_WIFI_SCAN is not set
+
+# before any step: read what the boot chain has set up in the SMMU for the radio's stream (smmu_look() below; nothing ...
+# CONFIG_WIFI_SMMU is not set
+
+# brcmfmac=8 without fw/network: the network's name, a byte as %XX (a space is %20)
+# CONFIG_WIFI_SSID is not set
+
+# read by lx_bus.c (kernel)
+# CONFIG_WIFI_STATION is not set
+
+# read by hakios.wifi.c (kernel)
+# CONFIG_WIFI_STEP is not set
+
+# never read the radio's files from the phone's VENDOR partition (default: read them there, ufs=2)
+# CONFIG_WIFI_VENDOR is not set
+
+# the partition the radio's files are read from (default VENDOR)
+# CONFIG_WIFI_VENDOR_PART is not set
+
+# how long step 11 watches for the DSP to say that it is up (default 10)
+# CONFIG_WIFI_WAIT is not set
+
+# read by hakios.wifi.c (kernel)
+# CONFIG_WIFI_WATCH is not set
+
+# read by lx_80211.c (kernel)
+# CONFIG_WIFI_WIDE is not set
+
+#
+# Cellular (53)
+#
+
+# the modem beside the system: its firmware, file systems, IPA, SIM, NAS [needs fw-modem/ from the phone] [requires CONFIG_UFS=2]
+CONFIG_MODEM=y
+
+# start the modem although a kernel before this one left it shut down [requires CONFIG_MODEM]
+CONFIG_MODEM_AGAIN=y
+
+# the modem's RMTFS buffer, an address below 4 GB (0xa8000000 on the reference phone) [requires CONFIG_MODEM]
+# CONFIG_MODEM_BUFFER is not set
+
+# a session to that APN instead of the default profile
+# CONFIG_MODEM_APN is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_DATA_NOBIND is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_DATA_OFF is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_DATA_WAIT is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_DPM_OFF is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_BUS_OFF is not set
+
+# none of this. modem_ipa_data_trace=1: a line per packet.
+# CONFIG_MODEM_IPA_DATA_OFF is not set
+
+# read by hakios.cell.c, hakios.ipa.c (kernel)
+# CONFIG_MODEM_IPA_DATA_TRACE is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_FW is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_FW_AT is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_GSI_ENABLE is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_ITEM is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_NO_PROBE is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_QUIET is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_RAW is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_ROUTES is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_SKIP_UC is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_IPA_SMMU_OFF is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_KEEP is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_LISTEN is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_NAS_WAIT is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_NEW is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_NO_IPA_QMI is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_NO_NAV is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_NO_TFTP is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_ONLINE is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_PAUSE is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_RETURN is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_RMTFS_DELAY is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_RMTFS_RW_FAKE is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_RMTFS_RW_OFF is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_SHARE_OFF is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_SHARE_TEST is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_SIM_PROBE_OFF is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_SIM_SWITCH_OFF is not set
+
+# the steps once the root is there, then back to the loader if modem_return=1 says so
+# CONFIG_MODEM_STEP is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_WAIT is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_MODEM_WDA_OFF is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_SOC_CMD_DB is not set
+
+# read by hakios.ipa.c (kernel)
+# CONFIG_SOC_GSI_BASE is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_SOC_IMEM is not set
+
+# read by hakios.ipa.c (kernel)
+# CONFIG_SOC_IPA_BASE is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_SOC_IPA_FW is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_SOC_IPA_STREAM is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_SOC_IPA_STREAM_UC is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_SOC_MPSS_MEM is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_SOC_PAS_IPA is not set
+
+# read by hakios.mpss.c (kernel)
+# CONFIG_SOC_PAS_MPSS is not set
+
+# where SMEM is (also the modem driver's argument; 0x80900000 on the reference phone)
+# CONFIG_SOC_SMEM is not set
+
+#
+# Cameras (28)
+#
+
+# the cameras (5 is what the README uses) [needs fw-camera/ from the phone]
+# CONFIG_CAM is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_AFTER is not set
+
+# read by 1400-avf-scion-camera.patch, hakios.camera.c (kernel)
+# CONFIG_CAM_FAKE is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_FAKE_FPS is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_FRAMES is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_GAIN is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_KEEP_MB is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_MODE is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_PATTERN is not set
+
+# the front camera's first N steps: 1 a look, 2 the sensor's ID, 3 the ISPPRE domain and CSIS1
+# CONFIG_CAM_S9 is not set
+
+# the sensor's 7-bit I2C address, if not 0x35 (the device tree's) and not found by the scan
+# CONFIG_CAM_S9_ADDR is not set
+
+# no auto-exposure: the frames as cam_s9_exp and cam_s9_gain have them (default 1: on)
+# CONFIG_CAM_S9_AE is not set
+
+# read by hakios.exynos_camera.c (kernel)
+# CONFIG_CAM_S9_AE_FRAMES is not set
+
+# camshot's Bayer order: 0 RGGB, 1 GRBG (the default, the sensor's), 2 GBRG, 3 BGGR
+# CONFIG_CAM_S9_BAYER is not set
+
+# the most digital gain the auto-exposure may use, 0x100 being 1x (default 0x400, at most 0x1000)
+# CONFIG_CAM_S9_DGAIN is not set
+
+# the first exposure of step 5's frame in lines of 26.3 us (default 1000, at most 1262)
+# CONFIG_CAM_S9_EXP is not set
+
+# the first analog gain of step 5's frame, 0x20 being 1x (default 0x40, at most 0x200)
+# CONFIG_CAM_S9_GAIN is not set
+
+# read by hakios.exynos_camera.c (kernel)
+# CONFIG_CAM_S9_IPCLK is not set
+
+# CLKCMU_ISPPRE_BUS (CSIS1's and its WDMA's clock) = SHARED1_DIV4, 466 MHz, / (D + 1); default
+# CONFIG_CAM_S9_ISPDIV is not set
+
+# read by hakios.exynos_camera.c (kernel)
+# CONFIG_CAM_S9_MMU_PROBE is not set
+
+# the WDMA's PACK12 layout rather than RAW10 as it comes (the BSP sets PACK12 for its V4L2 SBGGR10 buffers)
+# CONFIG_CAM_S9_PACK12 is not set
+
+# the risky reads too, for the log: CMU_ISPPRE's whole Q-channel sweep with each DBG_NFO (+0x4000)
+# CONFIG_CAM_S9_PROBE is not set
+
+# camshot's colour saturation in per cent (default 140; 100: none; at most 300)
+# CONFIG_CAM_S9_SAT is not set
+
+# camshot's bytes a line of the frame (default 3264: the WDMA's RAW10 is a pixel in 16 bits)
+# CONFIG_CAM_S9_STRIDE is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_SENSOR is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_SETTLE is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_SHUTTER is not set
+
+# read by hakios.camera.c (kernel)
+# CONFIG_CAM_VBLANK is not set
+
+#
+# Haptics and torch (5)
+#
+
+# the vibration motor (5 is what the README's phone line uses) [needs fw-haptic/ from the phone]
+# CONFIG_HAPTIC is not set
+
+# read by hakios.haptic.c (kernel)
+# CONFIG_HAPTIC_EFFECT is not set
+
+# a look, reading only: the bus as found, the chip's ID, the flash block's registers, the two pins
+# CONFIG_TORCH is not set
+
+# read by hakios.s2mpb02_torch.c, hakios.torch.c (kernel)
+# CONFIG_TORCH_MAX_S is not set
+
+# read by hakios.s2mpb02_torch.c, hakios.torch.c (kernel)
+# CONFIG_TORCH_SECS is not set
+
+#
+# Chip, thermal and PMIC (19)
+#
+
+# read the chip's identity from the firmware's shared memory: kern.hakios.soc_* (SoC number, revision, board)
+# CONFIG_SOCINFO is not set
+
+# read the SoC's 27 temperature sensors: kern.hakios.thermal_* and a line in the log; read only
+# CONFIG_THERMAL is not set
+
+# how often the sensors are read, in milliseconds (200 to 60000; 2000) [requires CONFIG_THERMAL]
+# CONFIG_THERMAL_POLL is not set
+
+# hand control back to the loader when the hottest sensor reads this many degrees three times in a row (0: never; ... [requires CONFIG_THERMAL]
+# CONFIG_THERMAL_STOP is not set
+
+# list every block of the power-management chips the SPMI arbiter shows, and read the PMIC's clock; read only
+# CONFIG_PMIC is not set
+
+# what a halt does: 0 the loader's way (the default), 1 panel off and PS_HOLD, 2 also the APM stopped first
+# CONFIG_HALT_OFF is not set
+
+# only the clock, not the inventory of every block
+# CONFIG_PMIC_LIST is not set
+
+# read by hakios.socinfo.c (kernel)
+# CONFIG_SOC_SMEM_SIZE is not set
+
+# a summary line this often (0: only on a rise; 60)
+# CONFIG_THERMAL_LOG is not set
+
+# read by hakios.thermal.c (kernel)
+# CONFIG_THERMAL_TM0 is not set
+
+# read by hakios.thermal.c (kernel)
+# CONFIG_THERMAL_TM1 is not set
+
+# the steps: 1 reads, 2 publishes, 3 acts (0, or none: nothing)
+# CONFIG_TMU is not set
+
+# step 3's limit for the battery (0: not watched; 40 to 80, the BSP's temp_highlimit; 60)
+# CONFIG_TMU_BATT_STOP is not set
+
+# start a block the boot left stopped (CORE_EN only; never the hardware trip)
+# CONFIG_TMU_ENABLE is not set
+
+# a summary this often (0: only on a rise; 60)
+# CONFIG_TMU_LOG is not set
+
+# step 3 powers the phone off (PS_HOLD) when no charger is reported, instead of the loader's restart
+# CONFIG_TMU_OFF is not set
+
+# how often to read (200 to 60000; 1000, the BIG zone's polling-delay)
+# CONFIG_TMU_POLL is not set
+
+# step 3's limit for the SoC's zones (40 to 115; 110)
+# CONFIG_TMU_STOP is not set
+
+# open the TMU's PCLK gate if the boot left it forced shut
+# CONFIG_TMU_UNGATE is not set
+
+#
+# Network (5)
+#
+
+# a log line for each of the first N frames on the network interfaces
+# CONFIG_NET_TRACE is not set
+
+# a log line for every name asked of a DNS server and every TCP connection begun (the names go to the log: for ...
+# CONFIG_NET_NAMES is not set
+
+# QEMU's virtio network device as en0 (QEMU only; its bus address means nothing on a phone)
+# CONFIG_VIRTIO_NET is not set
+
+# read by hakios.virtio_net.c (kernel)
+# CONFIG_VIRTIO_NET_SSID is not set
+
+# iOS is told that en0 is a radio, the way the phone's is (hakios.net.c, hakios.wlan.cpp, hakios.apple80211.c), and a ...
+# CONFIG_VIRTIO_NET_WIFI is not set
+
+#
+# Security stand-ins (1)
+#
+
+# read by kern_minimac.c (kernel)
+# CONFIG_PRIVS is not set
+
+#
+# Debugging (8)
+#
+
+# read by user_exception_trace.c (kernel)
+# CONFIG_KSAMPLE is not set
+
+# read by user_exception_trace.c (kernel)
+# CONFIG_KSAMPLE_US is not set
+
+# read by user_exception_trace.c (kernel)
+# CONFIG_USTACKS is not set
+
+# read by user_exception_trace.c (kernel)
+# CONFIG_USTACKS_AT is not set
+
+# read by user_exception_trace.c (kernel)
+# CONFIG_USTACKS_COUNT is not set
+
+# read by user_exception_trace.c (kernel)
+# CONFIG_USTACKS_MS is not set
+
+# read by user_exception_trace.c (kernel)
+# CONFIG_USTACKS_THREADS is not set
+
+# read by user_exception_trace.c (kernel)
+# CONFIG_USTACKS_TNAME is not set
+
+#
+# Loader (7)
+#
+
+# read by loader.c (loader)
+# CONFIG_CPUMASK is not set
+
+# read by loader.c (loader)
+# CONFIG_GAMUT is not set
+
+# read by loader.c (loader)
+# CONFIG_LOADER_PLATFORM is not set
+
+# read by loader.c (loader)
+# CONFIG_RECOVERY is not set
+
+# read by loader.c (loader)
+# CONFIG_SERIAL is not set
+
+# read by loader.c (loader)
+# CONFIG_UFS_PROBE is not set
+
+# the Galaxy S9's hardware watchdog is not armed (a restart still goes to recovery: INFORM3 is written)
+# CONFIG_WDT is not set
+
+#
+# User space (82)
+#
+
+# read by inject_sb.c (user space)
+# CONFIG_AUTOUNLOCK is not set
+
+# read by 1001-avf-psci-system-off.patch (kernel)
+# CONFIG_AVF_EXIT is not set
+
+# the brightness the user sets (Control Center's slider, Settings) is taken to the panel
+# CONFIG_BRIGHTNESS_BRIDGE is not set
+
+# read by hakios.bcm4361_bt.c, hakios.bt.c (kernel)
+# CONFIG_BT is not set
+
+# the second look this many seconds later (0: no second look; 30)
+# CONFIG_BT_AGAIN is not set
+
+# read by hakios.bcm4361_bt.c (kernel)
+# CONFIG_BT_BAUD is not set
+
+# at bt=2 and up, take the expander out of reset if it is held there
+# CONFIG_BT_EXPANDER_RESET is not set
+
+# the patch file's name in fw/ (default bcm4361B2.hcd); without it, the phone's own from VENDOR
+# CONFIG_BT_HCD is not set
+
+# leave the chip powered at the end (default: BT_EN and BT_WAKE low once the steps are done or one fails)
+# CONFIG_BT_KEEP is not set
+
+# murata or semco: which patch (bcm4361B2_<m>.hcd; default: the module Wi-Fi read in OTP, else a guess)
+# CONFIG_BT_MODULE is not set
+
+# read by hakios.bcm4361_bt.c (kernel)
+# CONFIG_BT_SCAN is not set
+
+# read by hakios.bcm4361_bt.c (kernel)
+# CONFIG_BT_TTY is not set
+
+# UART_BT's clock in MHz, if bt=1 shows the divider or mux not as Android leaves them (default 200)
+# CONFIG_BT_UART_MHZ is not set
+
+# never read the patch from the phone's VENDOR partition (default: read it there with ufs=2)
+# CONFIG_BT_VENDOR is not set
+
+# the partition the patch is read from (default VENDOR)
+# CONFIG_BT_VENDOR_PART is not set
+
+# CoreAnimation's frame clock from the display driver's refresh notifications
+# CONFIG_CA_VBL is not set
+
+# CoreAnimation's switches here as in the window server (inject.c), set before QuartzCore reads them
+# CONFIG_CAENV is not set
+
+# read by inject.c (user space)
+# CONFIG_CAMTL is not set
+
+# read by inject_sb.c (user space)
+# CONFIG_CC_FADE is not set
+
+# is the big cluster in the same coherency domain as the A55s once it is started? (off by default)
+# CONFIG_COHTEST is not set
+
+# read by hakios.exynos_m3.c (kernel)
+# CONFIG_COHTEST_DELAY is not set
+
+# read by 1003-avf-console-quiet.patch (kernel)
+# CONFIG_CONSOLE_QUIET is not set
+
+# run it (0, or none: the fixed rates of cpufreq_lit= and cpufreq_big=)
+# CONFIG_CPUFREQ_GOV is not set
+
+# read by hakios.exynos_cpufreq.c (kernel)
+# CONFIG_CPUFREQ_GOV_BIG_MAX is not set
+
+# read by hakios.exynos_cpufreq.c (kernel)
+# CONFIG_CPUFREQ_GOV_BIG_MIN is not set
+
+# read by hakios.exynos_cpufreq.c (kernel)
+# CONFIG_CPUFREQ_GOV_LIT_MAX is not set
+
+# read by hakios.exynos_cpufreq.c (kernel)
+# CONFIG_CPUFREQ_GOV_LIT_MIN is not set
+
+# a summary line this often (0: none; 1)
+# CONFIG_CPUFREQ_GOV_LOG is not set
+
+# the load window (20 to 200; 40)
+# CONFIG_CPUFREQ_GOV_MS is not set
+
+# read by 1002-avf-security-level.patch (kernel)
+# CONFIG_CS_RELAX_PLATFORM_TASK_PORTS is not set
+
+# read by 1503-early-log-and-panic.patch (kernel)
+# CONFIG_EARLY_LOG is not set
+
+# read by 1507-esslog-exynos-snapshot.patch, 1509-m3-diag-and-pan-off.patch (kernel)
+# CONFIG_ESSLOG is not set
+
+# not even with a GPU; gl=1: also without one, by Mesa's software driver (slow; for working on eagl.c in QEMU)
+# CONFIG_GL is not set
+
+# read by inject.c (user space)
+# CONFIG_GLCOMPILE is not set
+
+# read by inject.c (user space)
+# CONFIG_GLNO is not set
+
+# read by inject.c (user space)
+# CONFIG_GLSB3 is not set
+
+# the renderer is made to answer that it has those functions after all
+# CONFIG_GLYES is not set
+
+# the M3s' floor while touched (1469000; 0: no touch boost for them)
+# CONFIG_GOV_BOOST_BIG is not set
+
+# the A55s' floor while touched (1690000; 0: none)
+# CONFIG_GOV_BOOST_LIT is not set
+
+# how long the touch boost holds after the last finger event (300; 0: no touch boost)
+# CONFIG_GOV_BOOST_MS is not set
+
+# windows in a row that want less before the rate comes down (5; 1 to 50)
+# CONFIG_GOV_DOWN is not set
+
+# the M3s' floor while frames come (1261000; 0: no frame boost)
+# CONFIG_GOV_FRAME_BIG is not set
+
+# a frame this recent keeps the frame boost on (100; 20 to 1000)
+# CONFIG_GOV_FRAME_MS is not set
+
+# the busiest core's share wanted at the new rate (60; 30 to 95)
+# CONFIG_GOV_TARGET is not set
+
+# read by hakios.vgpu3d_xnu.c (kernel)
+# CONFIG_GPU3D is not set
+
+# read by hakios.vgpu3d_xnu.c (kernel)
+# CONFIG_GPU3D_SIZE is not set
+
+# read by 1509-m3-diag-and-pan-off.patch (kernel)
+# CONFIG_IMMEDIATE_NMI is not set
+
+# no IOAESAccelerator at all, as the kernel was before this driver
+# CONFIG_IOAES is not set
+
+# read by 1510-isa-floor.patch (kernel)
+# CONFIG_ISA_FLOOR is not set
+
+# read by 1509-m3-diag-and-pan-off.patch (kernel)
+# CONFIG_M3_DIAG is not set
+
+# read by 1509-m3-diag-and-pan-off.patch (kernel)
+# CONFIG_M3_FLUSH is not set
+
+# read by 1509-m3-diag-and-pan-off.patch (kernel)
+# CONFIG_M3_IDS is not set
+
+# read by 1510-isa-floor.patch, 1511-m3-user-cache-pou.patch, hakios.exynos_m3.c (kernel)
+# CONFIG_M3_PREP is not set
+
+# read by 1101-virtio-disk-as-md0.patch (kernel)
+# CONFIG_MD0 is not set
+
+# read by hakiosmetal_air.m (user space)
+# CONFIG_METAL_PROFILE is not set
+
+# read by 1509-m3-diag-and-pan-off.patch (kernel)
+# CONFIG_PAN is not set
+
+# read by poster_retry.c (user space)
+# CONFIG_POSTER_RETRY is not set
+
+# the root is to be the Darwin root volume on /dev/DEV -- the phone's flash, read only
+# CONFIG_ROOT_APFS is not set
+
+# read the clock at start-up (the kernel's first ask for the time of day), log it, use it when valid
+# CONFIG_RTC_PMIC is not set
+
+# read by inject_sb.c (user space)
+# CONFIG_SB_FPS is not set
+
+# read by 1400-avf-scion-camera.patch, hakios.sccam_torch.c (kernel)
+# CONFIG_SCCAM_ADDR is not set
+
+# read by 1400-avf-scion-camera.patch (kernel)
+# CONFIG_SCCAM_H is not set
+
+# read by 1400-avf-scion-camera.patch (kernel)
+# CONFIG_SCCAM_SIZE is not set
+
+# read by 1400-avf-scion-camera.patch (kernel)
+# CONFIG_SCCAM_TURN is not set
+
+# read by 1400-avf-scion-camera.patch (kernel)
+# CONFIG_SCCAM_W is not set
+
+# read by 1200-avf-scfb-display.patch, 1202-virtio-gpu-2d.patch, hakios.scfb_battery.c (kernel)
+# CONFIG_SCFB_ADDR is not set
+
+# read by hakios.vgpu3d_xnu.c (kernel)
+# CONFIG_SCGPU_ADDR is not set
+
+# read by hakios.vgpu3d_xnu.c (kernel)
+# CONFIG_SCGPU_SIZE is not set
+
+# read by hakios.scsnd.c (kernel)
+# CONFIG_SCSND_ADDR is not set
+
+# read by hakios.scsnd.c (kernel)
+# CONFIG_SCSND_SIZE is not set
+
+# read by 1002-avf-security-level.patch (kernel)
+# CONFIG_SECURITY is not set
+
+# read by inject_sb.c (user space)
+# CONFIG_SWITCHER_WALLPAPER is not set
+
+# the root is to be the big system image (userland/system.apfs, a RAM boot's md0) on /dev/DEV, read
+# CONFIG_SYSTEM_APFS is not set
+
+# the touch screen first made answers no "PrimaryUsagePage" (tests the remake)
+# CONFIG_TOUCH_FAULT is not set
+
+# read by 1511-m3-user-cache-pou.patch (kernel)
+# CONFIG_UCACHE_TRAP is not set
+
+# read by init.c (user space)
+# CONFIG_VAR_HFS is not set
+
+# the data volume starts from the seed in this image, share/var.seed, not from the empty template
+# CONFIG_VAR_SEED is not set
+
+# read by hakios.vgpu.c (kernel)
+# CONFIG_VGPU_HEIGHT is not set
+
+# read by hakios.vgpu.c (kernel)
+# CONFIG_VGPU_WIDTH is not set
+
+# none. Without it: the first, when there is no UART.
+# CONFIG_VIRTIO_CONSOLE is not set
+
+# read by hakios.virtio.c (kernel)
+# CONFIG_VIRTIO_MMIO is not set
+
+# read by hakios.virtio.c (kernel)
+# CONFIG_VIRTIO_POLL is not set
+
+#
+# Extra arguments (2)
+#
+
+# the characters a run on this device adds to the kernel's command line itself (not set: 260, the reference phone's ...
+# CONFIG_CMDLINE_RUN is not set
+
+# more kernel arguments, as `name=value` words in quotes; each name must be one docs/boot-args.md lists
+# CONFIG_BOOTARGS is not set
+
+#
+# Sensors (10)
+#
+
+# read by hakios.ssp.c (kernel)
+# CONFIG_SHUB is not set
+
+# read by hakios.ssp.c (kernel)
+# CONFIG_SHUB_CHUB_ON is not set
+
+# read by hakios.ssp.c (kernel)
+# CONFIG_SHUB_DIV is not set
+
+# read by hakios.ssp.c (kernel)
+# CONFIG_SHUB_HELLO is not set
+
+# at the end of the steps, or when one fails, power the hub off again (NSTDBY low); default 1
+# CONFIG_SHUB_KEEP is not set
+
+# every SPI frame's first bytes in the log (very loud; the first 40 frames are always logged)
+# CONFIG_SHUB_LOG is not set
+
+# their period in ms (default 20; light, proximity and pressure 200)
+# CONFIG_SHUB_MS is not set
+
+# read by hakios.ssp.c (kernel)
+# CONFIG_SHUB_REQ_LEN is not set
+
+# read by hakios.ssp.c (kernel)
+# CONFIG_SHUB_REQ_RPC is not set
+
+# read by hakios.ssp.c (kernel)
+# CONFIG_SHUB_SENSORS is not set
+
+#
+# USB (9)
+#
+
+# the steps (0, or none: nothing)
+# CONFIG_USB_GADGET is not set
+
+# the glue may open a clock the boot left shut (Android's mux, divider and gate)
+# CONFIG_USB_GADGET_CLK is not set
+
+# send the log's line ends as they are (LF) rather than CR LF
+# CONFIG_USB_GADGET_CRLF is not set
+
+# read by hakios.dwc3.c (kernel)
+# CONFIG_USB_GADGET_DRAIN is not set
+
+# full speed (12 Mbit/s) instead of high speed
+# CONFIG_USB_GADGET_FS is not set
+
+# the glue puts the PHY's supplies into Android's USB mode (S9: S2MPS18 LDO9-14 mode 3, read back)
+# CONFIG_USB_GADGET_LDO is not set
+
+# the poll period while a host is attached (1-50; 2)
+# CONFIG_USB_GADGET_POLL is not set
+
+# read by hakios.dwc3.c (kernel)
+# CONFIG_USB_GADGET_SOC is not set
+
+# let the link suspend the 2.0 PHY when idle (GUSB2PHYCFG SUSPHY, as Linux does; off by default)
+# CONFIG_USB_GADGET_SUSPHY is not set
+

@@ -1,0 +1,80 @@
+#!/sbin/sh
+# Exact-build TWRP installer. Only the fixed BOOT block device is written.
+umask 077
+OUTFD=$2
+ZIPFILE=$3
+case "$OUTFD" in ''|*[!0-9]*) exit 1;; esac
+ui() { echo "ui_print $*" >&"$OUTFD"; echo ui_print >&"$OUTFD"; }
+abort() { ui "ERROR: $*"; exit 1; }
+BOOT=/dev/block/platform/11120000.ufs/by-name/BOOT
+RECOVERY=/dev/block/platform/11120000.ufs/by-name/RECOVERY
+SYSTEM=/dev/block/platform/11120000.ufs/by-name/SYSTEM
+EFS_MAC=/efs/wifi/.mac.info
+EXPECTED_BOOT=d197c2e8f0d2c6b6817c536bf05688bb91ecf6d924fd6d592a25ff263720e65a
+EXPECTED_STOCK=2d1f4d6ac7fb94fc833e547e130482db3237b6c7540fc3bd5a5e65c4f6442d56
+EXPECTED_TEMPLATE=9fded81fabae3112ad1bebbd1e7f1a8a6bb778820ce915a8dad58e3f949ca537
+EXPECTED_CANONICAL=de5e544f385d5b1603414ece3114129b9d542485400fc5f33808f558d0254b91
+MAC_OFFSET=20505888
+EXPECTED_SYSTEM=dbbea41980d7f3611495bc8d3b98fcb654f759fbf845786c506c690da1f27bf3
+hash() { sha256sum "$1" | cut -d ' ' -f 1; }
+[ "$(getprop ro.product.device)" = star2lte ] || abort 'This package supports star2lte only.'
+[ "$(getprop ro.bootloader)" = G965FXXUHFVG4 ] || abort 'Firmware differs from the verified baseline.'
+[ -n "$(getprop ro.twrp.version)" ] || abort 'Working TWRP is required.'
+[ "$(blockdev --getsize64 "$BOOT")" = 57671680 ] || abort 'Unexpected BOOT partition size.'
+ui 'Checking the existing iOS SYSTEM; this can take a minute.'
+[ "$(hash "$SYSTEM")" = "$EXPECTED_SYSTEM" ] || abort 'SYSTEM does not match. No partition was written.'
+BEFORE=$(hash "$BOOT")
+[ "$BEFORE" != "$EXPECTED_BOOT" ] || { ui 'Exact installed GLES BOOT already present. Nothing written.'; exit 0; }
+RECOVERY_BEFORE=$(hash "$RECOVERY")
+[ -n "$RECOVERY_BEFORE" ] || abort 'Cannot verify RECOVERY.'
+WORK=/tmp/star2lte-installed-gles-$$
+mkdir "$WORK" || abort 'Cannot allocate recovery RAM staging directory.'
+WRITING=0
+COMMITTED=0
+cleanup() {
+    if [ "$WRITING" = 1 ] && [ "$COMMITTED" != 1 ]; then
+        ui 'Restoring the previous BOOT from recovery RAM.'
+        dd if="$WORK/before.img" of="$BOOT" bs=1048576 conv=fsync
+        if [ "$(hash "$BOOT")" != "$BEFORE" ]; then
+            ui 'BOOT restore failed; stay in TWRP and do not reboot.'
+            ui "RAM backup retained at $WORK/before.img for manual recovery."
+            return
+        fi
+    fi
+    rm -f "$WORK/prefix.img" "$WORK/before.img" "$WORK/target.img" "$WORK/mac.info" "$WORK/empty-mac"
+    rmdir "$WORK" 2>/dev/null
+}
+trap cleanup 0
+trap 'exit 1' 1 2 15
+unzip -p "$ZIPFILE" boot-prefix.template > "$WORK/prefix.img" || abort 'Cannot extract the BOOT template.'
+[ "$(hash "$WORK/prefix.img")" = "$EXPECTED_TEMPLATE" ] || abort 'BOOT template checksum mismatch.'
+dd if="$BOOT" of="$WORK/before.img" bs=1048576 || abort 'Cannot save BOOT to recovery RAM.'
+[ "$(hash "$WORK/before.img")" = "$BEFORE" ] || abort 'RAM backup verification failed.'
+printf '00:00:00:00:00:00\n' > "$WORK/empty-mac"
+if [ "$BEFORE" != "$EXPECTED_STOCK" ]; then
+    cat "$WORK/before.img" > "$WORK/target.img" || abort 'Cannot check current BOOT.'
+    dd if="$WORK/empty-mac" of="$WORK/target.img" bs=1 seek="$MAC_OFFSET" conv=notrunc || abort 'Cannot check current BOOT identity.'
+    [ "$(hash "$WORK/target.img")" = "$EXPECTED_CANONICAL" ] || abort 'Starting BOOT is not a supported original or installed build.'
+    ui 'Exact installed GLES build already present with device-local MAC. Nothing written.'
+    exit 0
+fi
+cat "$WORK/prefix.img" > "$WORK/target.img" || abort 'Cannot construct BOOT.'
+dd if="$WORK/before.img" bs=2048 skip=13872 >> "$WORK/target.img" || abort 'Cannot append the original firmware tail.'
+[ "$(hash "$WORK/target.img")" = "$EXPECTED_CANONICAL" ] || abort 'Result differs from the verified GLES template.'
+[ -r "$EFS_MAC" ] || abort 'Original MAC is unavailable. Make EFS available read-only in TWRP; no BOOT was written.'
+cat "$EFS_MAC" > "$WORK/mac.info" || abort 'Cannot read the target device MAC.'
+[ "$(wc -c < "$WORK/mac.info" | tr -d '[:space:]')" = 18 ] || abort 'Unexpected original MAC file size.'
+LC_ALL=C grep -Eq '^[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}$' "$WORK/mac.info" || abort 'Invalid original MAC format.'
+case "$(cut -c 2 "$WORK/mac.info" | tr A-F a-f)" in 0|2|4|6|8|a|c|e) ;; *) abort 'Original MAC is not unicast.';; esac
+grep -q '^00:00:00:00:00:00$' "$WORK/mac.info" && abort 'Original MAC is empty.'
+dd if="$WORK/mac.info" of="$WORK/target.img" bs=1 seek="$MAC_OFFSET" conv=notrunc || abort 'Cannot personalize BOOT in recovery RAM.'
+TARGET=$(hash "$WORK/target.img")
+[ -n "$TARGET" ] || abort 'Cannot verify personalized BOOT.'
+WRITING=1
+dd if="$WORK/target.img" of="$BOOT" bs=1048576 conv=fsync || abort 'BOOT write failed.'
+[ "$(hash "$BOOT")" = "$TARGET" ] || abort 'BOOT readback mismatch.'
+[ "$(hash "$RECOVERY")" = "$RECOVERY_BEFORE" ] || abort 'RECOVERY verification mismatch.'
+COMMITTED=1
+ui 'Verified GLES build installed with this device MAC. RECOVERY is unchanged.'
+ui 'No SYSTEM or DATA writes. Automatic recovery return remains 600 seconds.'
+exit 0

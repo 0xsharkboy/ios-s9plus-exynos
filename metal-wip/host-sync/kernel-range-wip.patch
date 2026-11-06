@@ -1,0 +1,105 @@
+diff --git a/drivers/gpu/hakios.mali.cpp b/drivers/gpu/hakios.mali.cpp
+index 11c16a8..d38c7e9 100644
+--- a/drivers/gpu/hakios.mali.cpp
++++ b/drivers/gpu/hakios.mali.cpp
+@@ -47,6 +47,7 @@
+ #include <sys/systm.h>
+ 
+ #include "MiniIOSurface.h"
++#include "hakios.mali_host_sync.h"
+ #include "hakios.mali_cpu_cache.h"
+ #include <pexpert/pexpert.h>
+ 
+@@ -660,6 +661,7 @@ HakiosMaliUserClient::externalMethod(uint32_t selector, IOExternalMethodArgument
+ 		struct mali_surface surface;
+ 		struct mali_wait waitseq;
+ 		struct mali_surface_seq sseq;
++		struct hakios_mali_host_sync hostSync;
+ 	} r;
+ 	size_t size = args->structureInputSize;
+ 	struct mali_buffer * b;
+@@ -671,6 +673,10 @@ HakiosMaliUserClient::externalMethod(uint32_t selector, IOExternalMethodArgument
+ 	if (!hakios_mali_ready()) {
+ 		return kIOReturnNotReady;
+ 	}
++	if (selector == HAKIOS_MALI_HOST_SYNC_SELECTOR &&
++	    (size != sizeof(r.hostSync) || current_task() != fTask)) {
++		return kIOReturnBadArgument;
++	}
+ 	bzero(&r, sizeof(r));
+ 	memcpy(&r, args->structureInput, size);
+ 
+@@ -710,6 +716,28 @@ HakiosMaliUserClient::externalMethod(uint32_t selector, IOExternalMethodArgument
+ 		IOLog("HakiosMali: request %#x, %zu bytes\n", selector, size);
+ 	}
+ 	switch (selector) {
++	case HAKIOS_MALI_HOST_SYNC_SELECTOR: {
++		/* No user pointer is accepted: buffer() resolves only this client's BOs.
++		 * The kernel alias covers the cached IOSurface pages and reaches PoC in
++		 * one call, rather than one EL0 cache-op trap per cache line. Explicit
++		 * requests remain real even when legacy mali_flush=0 diagnostics are on. */
++		if (hakios_mali_host_sync_query(&r.hostSync)) break;
++		b = buffer(r.hostSync.handle);
++		if (!b || !b->surface || !b->surface->kpixels) {
++			ret = b ? kIOReturnUnsupported : kIOReturnNotFound;
++			break;
++		}
++		MiniIOSurface *surface = b->surface;
++		if (!hakios_mali_host_sync_range(&r.hostSync, surface->info.allocSize)) {
++			ret = kIOReturnBadArgument;
++			break;
++		}
++		if (r.hostSync.length && !surface->scanPhys) {
++			FlushPoC_DcacheRegion((vm_offset_t)surface->kpixels + r.hostSync.offset,
++			    (size_t)r.hostSync.length);
++		}
++		break;
++	}
+ 	case kPanfrostGetParam:
+ 		if (!hakios_mali_parameter(r.param.param, &r.param.value)) {
+ 			ret = kIOReturnBadArgument;
+diff --git a/drivers/gpu/hakios.mali_host_sync.h b/drivers/gpu/hakios.mali_host_sync.h
+new file mode 100644
+index 0000000..0aab5b2
+--- /dev/null
++++ b/drivers/gpu/hakios.mali_host_sync.h
+@@ -0,0 +1,29 @@
++/* SPDX-License-Identifier: MIT
++ * Explicit PoC cache maintenance for an IOSurface BO owned by this client.
++ * Callers order GPU/CPU access before requesting clean-and-invalidate.
++ */
++#ifndef HAKIOS_MALI_HOST_SYNC_H
++#define HAKIOS_MALI_HOST_SYNC_H
++#include <stdint.h>
++
++#define HAKIOS_MALI_HOST_SYNC_SELECTOR 0x7bu
++#define HAKIOS_MALI_HOST_SYNC_VERSION 0x3153434du /* MCS1 */
++struct hakios_mali_host_sync {
++    uint32_t version,handle;
++    uint64_t offset,length;
++};
++
++static inline int
++hakios_mali_host_sync_query(const struct hakios_mali_host_sync *request)
++{
++    return request->version==HAKIOS_MALI_HOST_SYNC_VERSION && !request->handle &&
++        !request->offset && !request->length;
++}
++
++static inline int
++hakios_mali_host_sync_range(const struct hakios_mali_host_sync *request,uint64_t capacity)
++{
++    return request->version==HAKIOS_MALI_HOST_SYNC_VERSION && request->handle &&
++        request->offset<=capacity && request->length<=capacity-request->offset;
++}
++#endif
+diff --git a/drivers/map b/drivers/map
+index 17ff6e4..b041e06 100644
+--- a/drivers/map
++++ b/drivers/map
+@@ -121,3 +121,5 @@ camera  bsd/dev/hakios.sccam_torch.c
+ power   bsd/dev/hakios.scfb_battery.c
+ gpu     bsd/sys/hakios.viewport.h
+ input   bsd/sys/hakios.touch_queue.h
++
++gpu      iokit/Kernel/hakios.mali_host_sync.h
