@@ -195,7 +195,15 @@ This establishes, on this phone:
 The hash of the whole BOOT partition differs from the image's because the old content remains past the image's end. The check is on the
 image's length.
 
-The next step is a kernel, which needs the Darwin toolchain.
+### 4: a kernel on core 2 (7 November 2026)
+
+`beyond2lte-ram.img`, SHA-256 `f4978e3a...`, from `47191c8`, with `loader_return_after=60 cpus=2 bootcpu=2 hello_wait=90`.
+
+The screen froze with the loader's log ending at `jumping to ...`, and the phone did not come back in 3 minutes. The line the loader prints
+right after asking for the core, `core N: the firmware answers ...`, was not there: **PSCI CPU_ON for core 2, called from UEFI, did not
+return**, so XNU itself probably never ran. Before it, every other core answered `AFFINITY_INFO` with -1. The device tree's PSCI node is the
+legacy `arm,psci` with no `AFFINITY_INFO`, and its `cpu_on` ID, 0xC4000003, is the one the loader uses and the S9's. Android's own CPU_ON
+works on this firmware, so what differs when UEFI calls it is unknown. Next, the kernel runs on core 0, which needs no CPU_ON.
 
 ## The kernel
 

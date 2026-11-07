@@ -14,7 +14,7 @@ python3 tools/hakios-device.py check beyond2lte
 python3 tools/hakios-config.py defconfig beyond2lte beyond2lte-ram
 python3 tools/hakios-config.py check
 ARGS=$(python3 tools/hakios-config.py args)
-test "$ARGS" = "cpus=2 bootcpu=2" || {
+test "$ARGS" = "cpus=1" || {
     echo "Unexpected RAM profile arguments: $ARGS" >&2
     exit 1
 }
