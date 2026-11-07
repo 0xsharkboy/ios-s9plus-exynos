@@ -60,6 +60,58 @@ ID is known to Panfrost, which Mesa documents as non-conformant on this GPU.
 | Bluetooth | BCM4375 (`bcm4375B1_*.hcd`) | **No** |
 | Wireless charger | `mfc-charger` (15-003b) | Not established |
 
+### What the loader's restart depends on
+
+The loader returns a run to recovery through the PMU, so these must be right before BOOT is first written. Samsung's values
+come from `drivers/soc/samsung/exynos-reboot.c`, `drivers/samsung/sec_reboot.c`, `include/linux/sec_debug.h`,
+`include/linux/sec_ext.h` and `drivers/watchdog/s3c2410_wdt.c`. Not yet seen working on this phone.
+
+| Item | S9/S9+ (`platform_starlte`) | S10+ |
+| --- | --- | --- |
+| PMU | 0x14060000 | **0x15860000** (`samsung,exynos9820-pmu`) |
+| SWRESET | +0x400, write `1` | **+0x3A00, write `2`** (bit 1, `CONFIG_SOC_EXYNOS9810` branch not taken) |
+| RST_STAT | +0x404 | +0x404 |
+| INFORM3, recovery | +0x80C, `0x12345674` | +0x80C, `SEC_RESET_REASON_RECOVERY` = `0x12345674`: the same |
+| INFORM2 | +0x808, `0x12345678` | +0x808, but Samsung's kernel here only sets byte [23:16] to `0x4E` (`SEC_REBOOT_NORMAL`, "LPM mode prevention") |
+| Watchdogs | cluster 0 0x10050000, cluster 1 0x10060000, PMU mask +0x408/+0x40C bit 23 | cluster 0 0x10050000 (`exynos9-v1-wdt`), **cluster 2** 0x10060000 (`exynos9-v2-wdt`, `RST_STAT` bit 23) |
+| Watchdog unmask | clears bit 23 of +0x408 and +0x40C | **`NONCPU_INT_EN` bit 2**: cluster 0 +0x1244, cluster 2 +0x1644. The S9's registers are not used |
+| PSCI | SMC, through Carbon's hypervisor | SMC. Carbon supports the Exynos 9810 only |
+| Timer | 26 MHz | 26 MHz |
+
+### Memory that must stay out of the kernel's window
+
+From the phone's `reserved-memory` and the UEFI's map. The S9's payload home, 0xD0000000, is taken here.
+
+| Range | What |
+| --- | --- |
+| 0x80000000 + 0x1000, 0x80001000 + 0x1000 | `sec_debug_magic`, `kaslr` |
+| 0x87000000 + 0x200000 | `el2_code` (Samsung's hypervisor) |
+| 0x96000000 + 0x2200000, 0x98200000 + 0xE00000, 0x99000000 + 0x1B80000 | `secure_camera`, `camera_contig`, `camera` |
+| 0xC0000000 + 0x80000 | `seclog_mem` |
+| 0xC9000000 + 0x200000 + stack and heap | the UEFI image |
+| 0xCA000000 + 0x1400000 | boot framebuffer |
+| 0xD0000000 + 0x1600000 | `modem_spare` |
+| 0xF0000000 + 0xB900000, 0xFB900000 + 0x2000000 | `modem_if`, `cp_ram_logging` |
+| 0x880000000 + 0xAD00000, 0x9FD800000 + 0x2800000 | `sec_rdx_bootdev`, `el2_earlymem` |
+
+The ROM's ramoops at 0xEB308000 + 0x8000 belongs to its kernel's device tree. S-Boot's own log area has not been established, so the
+S9's `ram_log` at 0xFED10000 is not carried over.
+
+### The UEFI
+
+Project Silicium's `beyond1ltePkg` and `S5E9820Pkg` exist. `Status.md` marks the S10 **Inactive**: display and side buttons work,
+while internal storage, USB, Windows boot and Linux boot do not, and it warns that "`BIT-16` Version is Required". Release v4.1 has
+`Mu-starlte.img` and no S10 image, so it must be built. Packing, from `Resources/Configs/beyond1lte.toml`: FD base 0xC9000000, size
+0x200000, no compression, a DTB appended, boot image header v1. No S10+ package exists. Carbon's `Hyp.bin` is in `S5E9810Pkg` only.
+
+The S9+ port reads storage through its UEFI (`ufs=2`). That is unavailable here, so any path past a RAM run needs the kernel's own UFS
+driver.
+
+## Recovering the phone
+
+BOOT, DTB and DTBO were saved with matching SHA-256 sums to the Git-ignored `backups/beyond2lte/`. Reported key combinations with the
+phone off, not yet tried on this one: recovery is Volume Up + Bixby + Power; Download mode is Volume Down + Bixby with USB connected.
+
 ## Where iOS can live
 
 The S9+ reads iOS from its SYSTEM partition. On this phone SYSTEM holds the installed Android, so an iOS SYSTEM there replaces the
