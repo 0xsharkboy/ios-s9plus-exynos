@@ -34,6 +34,6 @@ if [ -e /usr/lib/libtinfo.so.6 ]; then
     ln -sfn /usr/lib/libtinfo.so.6 "$THEOS/toolchain/linux/iphone/lib/libtinfo.so.6"
     patchelf --set-rpath '$ORIGIN' "$(readlink -f "$THEOS/toolchain/linux/iphone/lib/libtapi.so")"
 fi
-"$THEOS/toolchain/linux/iphone/bin/ld" -v 2>&1 | head -1
+"$THEOS/toolchain/linux/iphone/bin/ld" -v 2>&1 | sed -n 1p      # (not head: it closes the pipe, and pipefail makes that a failure)
 ls -d "$THEOS/sdks/iPhoneOS16.5.sdk/usr/include"
 echo "setup-theos: done, THEOS=$THEOS"
