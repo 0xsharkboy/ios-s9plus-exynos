@@ -199,11 +199,21 @@ image's length.
 
 `beyond2lte-ram.img`, SHA-256 `f4978e3a...`, from `47191c8`, with `loader_return_after=60 cpus=2 bootcpu=2 hello_wait=90`.
 
-The screen froze with the loader's log ending at `jumping to ...`, and the phone did not come back in 3 minutes. The line the loader prints
-right after asking for the core, `core N: the firmware answers ...`, was not there: **PSCI CPU_ON for core 2, called from UEFI, did not
-return**, so XNU itself probably never ran. Before it, every other core answered `AFFINITY_INFO` with -1. The device tree's PSCI node is the
-legacy `arm,psci` with no `AFFINITY_INFO`, and its `cpu_on` ID, 0xC4000003, is the one the loader uses and the S9's. Android's own CPU_ON
-works on this firmware, so what differs when UEFI calls it is unknown. Next, the kernel runs on core 0, which needs no CPU_ON.
+The screen froze with the loader's log ending at `jumping to ...`, and the phone did not come back in 3 minutes. Every other core answered
+`AFFINITY_INFO` with -1. The device tree's PSCI node is the legacy `arm,psci` with no `AFFINITY_INFO`, and its `cpu_on` ID, 0xC4000003, is
+the one the loader uses and the S9's.
+
+How far it got is unknown. The loader sets `screen_quiet` right after that line, so nothing it prints later reaches the screen: the missing
+`core N: the firmware answers ...` says nothing about CPU_ON, as an earlier version of this page wrongly concluded. The log was gone by the
+time OrangeFox was reached.
+
+### 5: a kernel on core 0 (7 November 2026)
+
+`beyond2lte-ram.img`, SHA-256 `80e735e1...`, from `5bc3d05`, with `loader_return_after=60 cpus=1 hello_wait=90`.
+
+The same frozen screen, ending at `jumping to ...`, with `cores for the kernel ...: 0`, and no return to recovery. CPU_ON is not involved
+here, so whatever stops this run is past the loader's jump. Where is unknown, since the screen is silent from there on and nothing armed
+a watchdog. The two runs may or may not share a cause.
 
 ## The kernel
 
