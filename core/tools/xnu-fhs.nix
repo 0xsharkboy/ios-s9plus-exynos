@@ -10,7 +10,7 @@ pkgs.buildFHSEnv {
     # unwrapped, as for tools/mu-silicium-fhs.nix: Nix's wrapper adds flags for its own target
     llvmPackages.clang-unwrapped gcc lld llvm
     autoconf automake bc bison flex gnum4 libtool perl python3
-    libuuid ncurses stdenv.cc.cc.lib zlib
+    libuuid libxcrypt ncurses stdenv.cc.cc.lib zlib
   ];
   # theos in the repository's ignored xnu-deps/, not in the home directory
   profile = ''export THEOS=''${THEOS:-$PWD/xnu-deps/theos}'';
