@@ -132,6 +132,24 @@ BOOT, DTB and DTBO were saved with matching SHA-256 sums to the Git-ignored `bac
 Bixby + Power reaches OrangeFox on this phone (tried on 7 November 2026). Reported and not tried here: Download mode is Volume Down +
 Bixby with USB connected.
 
+## Runs on the phone
+
+### 1: UEFI and loader, no kernel (7 November 2026)
+
+`beyond2lte-loader.img`, SHA-256 `42d4f9fa...`, from `796d991`, written to BOOT from OrangeFox with a verified readback; RECOVERY unchanged.
+
+- The screen stayed on Samsung's splash. No HakiOS logo or loader text appeared, USB dropped at the reboot and never came back, and the
+  phone did not return to recovery by itself.
+- Volume Down + Power forced it off, then it started into off-mode charging, because the cable was in. Unplugging the cable did not help
+  recovery entry: users report these phones need USB connected to a PC for it, which matches the attempt that worked.
+- Volume Down + Bixby while plugging USB in reached Download's warning screen. A short Volume Up continued to Download mode, `04e8:685d`.
+- `heimdall flash --BOOT boot.partition`, under `sudo` since NixOS denies USB write access, restored BOOT from Download. Android came back
+  and the hash matched. **Heimdall 2.2.2 works on this bootloader.**
+- `pmsg-ramoops-0` afterwards held Android and recovery logs and nothing of the loader. They may have overwritten it, so this proves nothing.
+- Android's `last_kmsg` reports `inform2: 0x4E4E0000`, consistent with the INFORM2 byte the loader writes.
+
+How far the run got is unknown: S-Boot may not have started the image, or the shim, UEFI or loader may have stopped before drawing.
+
 ## Where iOS can live
 
 The S9+ reads iOS from its SYSTEM partition. On this phone SYSTEM holds the installed Android, so an iOS SYSTEM there replaces the
