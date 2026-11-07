@@ -38,6 +38,9 @@ DEVICES = {
     # (... and the arm64 header's image size made the whole image's, the payload's included: a boot loader that puts
     # the device tree or anything else past the image it was told of would otherwise put it over the payload)
     'starlte': dict(fd_base=0x8F000000, gzip=False, append_dtb=False, dtb_arg=False, header_size=True),
+    # (the Galaxy S10's platform, which the S10+ borrows; Silicium's toml appends a DTB, but the stock kernel has none: S-Boot
+    # takes its device tree from the dtb partition, as on the S9)
+    'beyond1lte': dict(fd_base=0xC9000000, gzip=False, append_dtb=False, dtb_arg=False, header_size=True),
     # (no UEFI: the shim is the SoC repository's, socs/lga, and starts the loader itself)
     'frankel': dict(fd_base=0, shim=os.path.join('socs', 'lga', 'shim', 'shim.bin')),
 }
