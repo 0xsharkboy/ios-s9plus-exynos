@@ -150,6 +150,20 @@ Bixby with USB connected.
 
 How far the run got is unknown: S-Boot may not have started the image, or the shim, UEFI or loader may have stopped before drawing.
 
+### 2: the same with marks on the screen and a DEBUG UEFI (7 November 2026)
+
+`beyond2lte-loader.img`, SHA-256 `06f6684e...`, from `557112b`.
+
+**The UEFI runs on an S10+.** The screen was cleared and showed, with `Firmware Version 4.0`:
+
+```
+"DXE Heap" (0xC9240000) and "Display Reserved" (0xCA000000) Overlap!
+```
+
+That is `ValidateMemoryMap()` stopping in a loop on Silicium's own map, so nothing past it ran. The heap now sits above the framebuffer, at
+0xCB400000 + 0x3C00000. The shim's marks were wiped by the UEFI, as expected. USB showed `18d1:d001` named SM-G975F for 8 seconds, from
+20:13:46 to 20:13:55, which is not explained yet.
+
 ## Where iOS can live
 
 The S9+ reads iOS from its SYSTEM partition. On this phone SYSTEM holds the installed Android, so an iOS SYSTEM there replaces the
