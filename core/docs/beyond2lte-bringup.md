@@ -197,6 +197,26 @@ image's length.
 
 The next step is a kernel, which needs the Darwin toolchain.
 
+## The kernel
+
+On NixOS, from `core/`, with no IPSW:
+
+```sh
+$(nix-build --no-out-link tools/xnu-fhs.nix)/bin/xnu-fhs -c 'bash tools/setup-theos.sh &&
+  python3 tools/hakios-config.py defconfig beyond2lte beyond2lte-ram && bash xnu-deps/setup.sh && make SHELL=/bin/bash kernel'
+```
+
+Built with clang 21, no compile errors, and only the three virtio drivers. Not run yet.
+
+What the RAM profile's kernel still has of the S9, read before running it:
+
+| Code | What it does here |
+| --- | --- |
+| `osfmk/arm64/start.s`, every core | Writes four ID registers to 0xFDA10000 + 32 x Affinity1 with the MMU off, unconditionally. On this phone that is inside `log_kernel` (0xFD910000 + 2 MB), which the loader keeps out |
+| `esslog` | Only with `esslog=1`. Its 0xFDA00000 header and 0xFDA10000 buffer are the S9's, so it must not be turned on here |
+| `hakios_exynos_*` calls in the kernel | Stubs, since those drivers are left out |
+| `ml_phys_id_from_mpidr` (patch 1504) | Generic: it works out at boot whether MPIDR is MT-numbered. It reads the boot core only, so a tree mixing MT A55s and A75s with non-MT M4s needs checking before more than the A55s run |
+
 ## Where iOS can live
 
 The S9+ reads iOS from its SYSTEM partition. On this phone SYSTEM holds the installed Android, so an iOS SYSTEM there replaces the
