@@ -1,8 +1,8 @@
 diff --git a/bsd/dev/hakios.input.c b/bsd/dev/hakios.input.c
-index 5f8aeb8..8d27f41 100644
+index bd22586..02c2e39 100644
 --- a/bsd/dev/hakios.input.c
 +++ b/bsd/dev/hakios.input.c
-@@ -107,7 +107,7 @@ count_fingers(uint32_t type, uint32_t finger)
+@@ -117,14 +117,14 @@ count_fingers(uint32_t type, uint32_t finger)
  }
  
  static void
@@ -11,16 +11,15 @@ index 5f8aeb8..8d27f41 100644
  {
  	struct hakios_touch *t;
  
-@@ -116,7 +116,7 @@ touch_post(uint32_t type, uint32_t finger, uint32_t x, uint32_t y, bool from_dri
- 		touch_head++;                   /* nobody reads: drop the oldest */
- 	}
- 	t = &touch_queue[touch_tail++ % TOUCH_QUEUE];
+ 	lck_mtx_lock(&touch_lock);
+ 	t = hakios_touch_queue_slot(touch_queue, TOUCH_QUEUE, &touch_head, &touch_tail,
+ 	    type, finger, touch_coalesce, &touch_coalesced);
 -	t->time = mach_absolute_time();
 +	t->time = when != 0 ? when : mach_absolute_time();
  	if (latency_lines()) {
  		uint64_t ns;
  
-@@ -137,7 +137,14 @@ touch_post(uint32_t type, uint32_t finger, uint32_t x, uint32_t y, bool from_dri
+@@ -145,7 +145,14 @@ touch_post(uint32_t type, uint32_t finger, uint32_t x, uint32_t y, bool from_dri
  void
  hakios_touch_post(uint32_t type, uint32_t finger, uint32_t x, uint32_t y)
  {
@@ -36,7 +35,7 @@ index 5f8aeb8..8d27f41 100644
  }
  
  static int
-@@ -194,7 +201,7 @@ touch_write(__unused dev_t dev, struct uio *uio, __unused int ioflag)
+@@ -213,7 +220,7 @@ touch_write(__unused dev_t dev, struct uio *uio, __unused int ioflag)
  		if (t.type < HAKIOS_TOUCH_DOWN || t.type > HAKIOS_BUTTON_UP) {
  			return EINVAL;
  		}
@@ -46,10 +45,10 @@ index 5f8aeb8..8d27f41 100644
  	return error;
  }
 diff --git a/bsd/dev/hakios.virtio_input.c b/bsd/dev/hakios.virtio_input.c
-index f1accd9..51b1b95 100644
+index 9a6dd1c..dbdbef4 100644
 --- a/bsd/dev/hakios.virtio_input.c
 +++ b/bsd/dev/hakios.virtio_input.c
-@@ -112,6 +112,8 @@ struct input_event {
+@@ -113,6 +113,8 @@ struct input_event {
  #define ABS_MT_POSITION_Y       0x36
  #define ABS_MT_TRACKING_ID      0x39
  #define MT_SLOTS                10              /* fingers told apart (the HID side takes ten) */
@@ -58,7 +57,7 @@ index f1accd9..51b1b95 100644
  
  /* an axis' range, 0..65535 across the display after scaling */
  struct axis {
-@@ -137,6 +139,13 @@ struct input_device {
+@@ -138,6 +140,13 @@ struct input_device {
  		bool            down, moved;    /* as last posted, and changed since */
  	} contact[MT_SLOTS];
  	uint64_t                reports;        /* EV_SYN reports handled */
@@ -72,7 +71,7 @@ index f1accd9..51b1b95 100644
  #ifdef INPUT_VIO
  	vio_dev_t *             vdev;
  	vio_queue_t *           vq;
-@@ -260,19 +269,52 @@ scale(const struct axis *a, int32_t v)
+@@ -261,19 +270,52 @@ scale(const struct axis *a, int32_t v)
  	return (uint32_t)(((int64_t)v - a->min) * 65535 / span);
  }
  
@@ -128,7 +127,7 @@ index f1accd9..51b1b95 100644
  		}
  		d->contact[i].down = down;
  		d->contact[i].moved = false;
-@@ -324,12 +366,19 @@ input_event(struct input_device *d, const struct input_event *e)
+@@ -325,12 +367,19 @@ input_event(struct input_device *d, const struct input_event *e)
  			hakios_touch_post(e->value ? HAKIOS_BUTTON_DOWN : HAKIOS_BUTTON_UP, button, 0, 0);
  		}
  		break;
@@ -149,7 +148,7 @@ index f1accd9..51b1b95 100644
  			hakios_touch_post(HAKIOS_TOUCH_DOWN, 0, d->x, d->y);
  		} else if (d->pressed && d->moved) {
 diff --git a/bsd/sys/hakios.input.h b/bsd/sys/hakios.input.h
-index f727013..6381103 100644
+index 5e7e5ca..a03d52a 100644
 --- a/bsd/sys/hakios.input.h
 +++ b/bsd/sys/hakios.input.h
 @@ -38,6 +38,8 @@ struct hakios_touch {
