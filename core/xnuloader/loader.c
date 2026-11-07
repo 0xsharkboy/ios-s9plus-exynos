@@ -721,6 +721,8 @@ struct platform {
 	uint64_t timer_hz;               /* the timer's frequency where CNTFRQ_EL0 reads 0 (the firmware never set it), 0: none */
 	uint64_t recovery_pmu;           /* Samsung: the PMU whose INFORM registers send a restart into recovery (recovery_after_reset) */
 	uint32_t pmu_swreset;            /* ... and its SWRESET register's offset: the restart itself (platform_restart), 0: none */
+	uint32_t pmu_swreset_value;      /* ... what is written to it, 0: 1 */
+	uint8_t pmu_inform2_byte;        /* not 0: INFORM2 keeps its value, this in bits [23:16], as Samsung's kernel on this SoC does; 0: 0x12345678 */
 	uint64_t gic_redist_size;        /* the redistributors' region, where it is not 1 MB (GICv4 frames are 256 KB a core) */
 	const char *compatible;          /* told apart by this in the device tree's root "compatible" instead (platform_from_fdt) */
 	uint64_t exynos_wdt;             /* Samsung Exynos: the cluster watchdog armed for the run (exynos_wdt_start), 0: none */
@@ -899,6 +901,53 @@ static const struct platform platform_crownlte = {
 	.sibling_of = &platform_starlte,
 };
 
+static const struct platform platform_beyond2lte = {
+	/*
+	 * Samsung Galaxy S10+ (SM-G975F, beyond2lte), Exynos 9820. From the phone's own device tree and /proc/cmdline, and
+	 * Samsung's kernel for the registers (docs/beyond2lte-bringup.md). Written, not seen: nothing has run on an S10+.
+	 * Not a sibling of the S9: its framebuffer tells it apart, and its PMU, reset, cores and memory all differ.
+	 */
+	.name = "beyond2lte", .io_base = 0x10000000, .io_size = 0x10000000,
+	.gic_dist = 0x10101000, .gic_cpu = 0x10102000, .uart = 0,
+	/* Cores 0-3 are Cortex-A55s, 4-5 Cortex-A75s, 6-7 Samsung's Exynos M4s, in MPIDR's own numbering. */
+	.cores = 8, .core_mpidr = (const uint32_t[]){ 0x000, 0x001, 0x002, 0x003, 0x004, 0x005, 0x100, 0x101 },
+	.small_cores = 0x0f, .timer_hz = 26000000, .fb_base = 0xCA000000,
+	/* debug-snapshot's log_pstore, 0xEB308000 + 32 KB, halved as on the S9: dmesg, then pmsg. */
+	.ram_log = 0xEB30C000, .ram_log_size = 0x4000, .ram_dump = 0xEB308000, .ram_dump_size = 0x4000,
+	.log_other_cpu = 1,
+	/*
+	 * The PMU (samsung,exynos9820-pmu). exynos-reboot.c's branch for every SoC but the 9810: SWRESET +0x3A00, bit 1.
+	 * INFORM3 as on the S9; INFORM2's [23:16] is sec_reboot.c's SEC_REBOOT_NORMAL, which keeps S-Boot out of charging mode.
+	 */
+	.recovery_pmu = 0x15860000, .pmu_swreset = 0x3A00, .pmu_swreset_value = 0x2, .pmu_inform2_byte = 0x4E,
+	/*
+	 * No watchdog armed yet: this SoC unmasks its reset through NONCPU_INT_EN (+0x1244, +0x1644), not the S9's PMU
+	 * registers, and nothing has been seen of what S-Boot leaves. A hang needs the keys for now.
+	 */
+	.affinity_unreliable = 1,
+	/*
+	 * The boot shim puts the payload at 0xF0000000, in modem_if. 0xD0000000 is modem_spare here, so its home is above that,
+	 * below the 0xE0000000 hole between the DRAM banks.
+	 */
+	.payload_home = 0xD2000000,
+	.keep_out = {
+		{ 0x80000000, 0x00002000, "sec_debug_magic, kaslr" },
+		{ 0x87000000, 0x00200000, "el2_code" },
+		{ 0x96000000, 0x1E800000, "secure_camera, camera_contig, camera" },
+		{ 0xBAB00000, 0x05500000, "outside live FDT DRAM banks" },
+		{ 0xC0000000, 0x00080000, "seclog_mem" },
+		{ 0xCA000000, 0x01400000, "native boot framebuffer" },
+		{ 0xD0000000, 0x01600000, "modem_spare" },
+		{ 0xE0000000, 0x01900000, "outside live FDT DRAM banks" },
+		{ 0xEB308000, 0x01F08000, "debug-snapshot: pstore, s2d, arraydump" },
+		{ 0xF0000000, 0x0B900000, "CP: modem_if" },
+		{ 0xFB900000, 0x02000000, "CP: cp_ram_logging" },
+		{ 0xFD900000, 0x02700000, "debug-snapshot" },
+		{ 0x880000000, 0x0AD00000, "sec_rdx_bootdev" },
+		{ 0x9FD800000, 0x02800000, "el2_earlymem" },
+	},
+};
+
 static const struct platform platform_frankel = {
 	/*
 	 * Google Pixel 10 (frankel), Tensor G5 ("laguna", lga), bare metal. There is no UEFI for this phone: Google's boot
@@ -959,6 +1008,7 @@ static const struct platform platform_qemu_lga = {
 static const struct platform *const platforms[] = {
 	&platform_redwood,
 	&platform_starlte,
+	&platform_beyond2lte,
 	&platform_frankel,
 	&platform_qemu_lga,
 };
@@ -1454,7 +1504,9 @@ recovery_after_reset(void)
 	if (PLAT == NULL || PLAT->recovery_pmu == 0 || !reset_to_recovery) {
 		return;
 	}
-	*(volatile uint32_t *)(uintptr_t)(PLAT->recovery_pmu + 0x808) = 0x12345678;
+	volatile uint32_t *inform2 = (volatile uint32_t *)(uintptr_t)(PLAT->recovery_pmu + 0x808);
+
+	*inform2 = PLAT->pmu_inform2_byte != 0 ? (*inform2 & ~0x00FF0000u) | (uint32_t)PLAT->pmu_inform2_byte << 16 : 0x12345678;
 	*(volatile uint32_t *)(uintptr_t)(PLAT->recovery_pmu + 0x80C) = 0x12345674;
 	__asm__ volatile ("dsb sy" ::: "memory");
 }
@@ -1494,7 +1546,7 @@ platform_restart(void)
 			flush_log();
 		}
 		recovery_after_reset();         /* (again: nothing may come between these and the reset) */
-		pmu[PLAT->pmu_swreset / 4] = 1;
+		pmu[PLAT->pmu_swreset / 4] = PLAT->pmu_swreset_value != 0 ? PLAT->pmu_swreset_value : 1;
 		__asm__ volatile ("dsb sy\nisb" ::: "memory");
 		for (t0 = READ_SYSREG(CNTVCT_EL0); READ_SYSREG(CNTVCT_EL0) - t0 < hz;) {
 		}

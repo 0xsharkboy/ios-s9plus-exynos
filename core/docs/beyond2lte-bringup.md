@@ -86,16 +86,22 @@ From the phone's `reserved-memory` and the UEFI's map. The S9's payload home, 0x
 | --- | --- |
 | 0x80000000 + 0x1000, 0x80001000 + 0x1000 | `sec_debug_magic`, `kaslr` |
 | 0x87000000 + 0x200000 | `el2_code` (Samsung's hypervisor) |
-| 0x96000000 + 0x2200000, 0x98200000 + 0xE00000, 0x99000000 + 0x1B80000 | `secure_camera`, `camera_contig`, `camera` |
+| 0x96000000 + 0x2200000, 0x98200000 + 0xE00000, 0x99000000 + 0x1B800000 | `secure_camera`, `camera_contig`, `camera` |
 | 0xC0000000 + 0x80000 | `seclog_mem` |
 | 0xC9000000 + 0x200000 + stack and heap | the UEFI image |
 | 0xCA000000 + 0x1400000 | boot framebuffer |
 | 0xD0000000 + 0x1600000 | `modem_spare` |
 | 0xF0000000 + 0xB900000, 0xFB900000 + 0x2000000 | `modem_if`, `cp_ram_logging` |
+| 0xEB308000 + 0x1F08000, 0xFD900000 + 0x2700000 | `debug_snapshot`: `log_pstore`, `log_s2d`, `log_arraydump`, and its other logs |
 | 0x880000000 + 0xAD00000, 0x9FD800000 + 0x2800000 | `sec_rdx_bootdev`, `el2_earlymem` |
 
-The ROM's ramoops at 0xEB308000 + 0x8000 belongs to its kernel's device tree. S-Boot's own log area has not been established, so the
-S9's `ram_log` at 0xFED10000 is not carried over.
+`log_pstore` is 0xEB308000 + 0x8000, Samsung's layout at another address than the S9's 0xFED10000. Whether OrangeFox reads it back
+after a run has not been checked. `abox-rmem` has no fixed address here (`alloc-ranges`, 0x3C00000), which matters only once audio does.
+
+### The stock boot image
+
+Header v1, page 2048, kernel at 0x10008000, ramdisk at 0x11000000, tags at 0x10000100: as the S9's. The kernel has no appended device
+tree, since S-Boot uses the DTB partition, so this port appends none although Silicium's `beyond1lte.toml` asks for one.
 
 ### The UEFI
 
