@@ -114,6 +114,15 @@ and the requirement was stated for the S10, not the S10+. Release v4.1 has
 `Mu-starlte.img` and no S10 image, so it must be built. Packing, from `Resources/Configs/beyond1lte.toml`: FD base 0xC9000000, size
 0x200000, no compression, a DTB appended, boot image header v1. No S10+ package exists. Carbon's `Hyp.bin` is in `S5E9810Pkg` only.
 
+This port builds `beyond1ltePkg` with HakiOS's UEFI changes, using `tools/mu-silicium-fhs.nix` on NixOS, and replaces its memory map
+with `devices/beyond2lte/uefi/files/`. The added regions keep UEFI's allocator off the payload, the log and `el2_earlymem`, as Scion's
+S9 map does for the first two. Silicium's map declares a 60 MB DXE heap from 0xC9240000 that overlaps the framebuffer at 0xCA000000. It
+is left as it is because that map is the one Silicium reports a working display with, but it is a suspect if the UEFI misbehaves.
+
+With no payload, HakiOS's boot manager writes diagnostics to a `logdump` partition and resets. This phone has no such partition, so
+nothing reaches the flash, but the reset would restart BOOT in a loop. The first test therefore carries the loader, which restarts into
+recovery (`tools/build-beyond2lte-ram.sh --loader-only`).
+
 The S9+ port reads storage through its UEFI (`ufs=2`). That is unavailable here, so any path past a RAM run needs the kernel's own UFS
 driver.
 

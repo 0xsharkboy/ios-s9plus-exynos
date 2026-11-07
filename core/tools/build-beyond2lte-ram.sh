@@ -6,8 +6,8 @@ cd "$(dirname "$0")/.."
 
 MODE=${1:---check}
 case "$MODE" in
---check|--build) ;;
-*) echo "usage: bash tools/build-beyond2lte-ram.sh [--check|--build]" >&2; exit 2 ;;
+--check|--build|--loader-only) ;;
+*) echo "usage: bash tools/build-beyond2lte-ram.sh [--check|--build|--loader-only]" >&2; exit 2 ;;
 esac
 
 python3 tools/hakios-device.py check beyond2lte
@@ -29,6 +29,21 @@ done
 # Silicium publishes no S10 image: mkxnuimg.py needs this build of beyond1ltePkg, with HakiOS's UEFI changes.
 FD=${UEFI_FD:-Mu-Silicium/Build/beyond1ltePkg/RELEASE_CLANGPDB/FV/SILICIUM_UEFI.fd}
 test -f "$FD" || { echo "Missing the S10 UEFI: $FD" >&2; exit 1; }
+
+# The loader alone, with no kernel: it logs, finds nothing to run and restarts. This tests the UEFI, the platform's
+# description, the log and the return to recovery, with no Darwin toolchain.
+if [ "$MODE" = --loader-only ]; then
+    make SHELL="$BASH" loader-open
+    OUT=build/beyond2lte-loader
+    mkdir -p "$OUT"
+    python3 xnuloader/mkpayload.py -o "$OUT/payload.bin" --no-version loader.efi=xnuloader/loader.efi --cmdline "$ARGS"
+    UEFI_TARGET=beyond1lte UEFI_FD="$FD" python3 mkxnuimg.py -p "$OUT/payload.bin" -o "$OUT/beyond2lte-loader.img"
+    git rev-parse HEAD > "$OUT/core-revision.txt"
+    (cd "$OUT" && sha256sum beyond2lte-loader.img payload.bin core-revision.txt > SHA256SUMS)
+    test "$(stat -c %s "$OUT/beyond2lte-loader.img")" -le 57671680 || { echo "The image does not fit BOOT" >&2; exit 1; }
+    echo "$OUT/beyond2lte-loader.img: nothing was written to a phone"
+    exit 0
+fi
 
 make SHELL="$BASH" kernel
 # Placeholder identity is sufficient for the raw-syscall hello process.
