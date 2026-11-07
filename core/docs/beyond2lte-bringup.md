@@ -108,7 +108,9 @@ tree, since S-Boot uses the DTB partition, so this port appends none although Si
 ### The UEFI
 
 Project Silicium's `beyond1ltePkg` and `S5E9820Pkg` exist. `Status.md` marks the S10 **Inactive**: display and side buttons work,
-while internal storage, USB, Windows boot and Linux boot do not, and it warns that "`BIT-16` Version is Required". Release v4.1 has
+while internal storage, USB, Windows boot and Linux boot do not, and it warns that "`BIT-16` Version is Required". That is read here
+as Samsung's bootloader revision, the `G` (16) in this phone's `G975FXXSGHWC2`, which would match; Silicium does not spell this out,
+and the requirement was stated for the S10, not the S10+. Release v4.1 has
 `Mu-starlte.img` and no S10 image, so it must be built. Packing, from `Resources/Configs/beyond1lte.toml`: FD base 0xC9000000, size
 0x200000, no compression, a DTB appended, boot image header v1. No S10+ package exists. Carbon's `Hyp.bin` is in `S5E9810Pkg` only.
 
