@@ -10,9 +10,13 @@ pkgs.buildFHSEnv {
     # unwrapped, as for tools/mu-silicium-fhs.nix: Nix's wrapper adds flags for its own target
     llvmPackages.clang-unwrapped gcc lld llvm
     autoconf automake bc bison flex gnum4 libtool perl python3
-    libuuid libxcrypt ncurses stdenv.cc.cc.lib zlib
+    libuuid libuuid.dev libxcrypt ncurses stdenv.cc.cc.lib zlib
   ];
   # theos in the repository's ignored xnu-deps/, not in the home directory
-  profile = ''export THEOS=''${THEOS:-$PWD/xnu-deps/theos}'';
+  # ... and SETUP/'s host tools built with gcc, whose wrapper knows where glibc's headers are: the unwrapped clang finds none
+  profile = ''
+    export THEOS=''${THEOS:-$PWD/xnu-deps/theos}
+    export XNU_HOST_COMPILER="gcc -std=gnu11 -fpermissive -w -idirafter /usr/include"
+  '';
   runScript = "bash";
 }

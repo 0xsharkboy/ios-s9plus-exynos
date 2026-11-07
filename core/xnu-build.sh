@@ -20,7 +20,7 @@ mtime() { if [ "$XNU_HOST_OS" = Darwin ]; then /usr/bin/stat -f %m "$1"; else st
 if [ -f "$LX" ]; then now="$LX $(mtime "$LX")"; else LX= now=; fi
 # the build tools of SETUP/ are Apple's: on macOS they build as they are, on Linux with a compatibility header
 if [ "$XNU_HOST_OS" = Darwin ]; then HOSTCC=clang; else
-HOSTCC="clang -include $XNUDEPS/hostinc/hostcompat.h -I$XNUDEPS/hostinc -Wno-unused-command-line-argument -Wno-error=implicit-function-declaration"
+HOSTCC="${XNU_HOST_COMPILER:-clang} -include $XNUDEPS/hostinc/hostcompat.h -I$XNUDEPS/hostinc -Wno-unused-command-line-argument -Wno-error=implicit-function-declaration"
 # Apple's three Mach-O headers they need are no longer in the repository: xnu-deps/setup.sh copies them from this tree,
 # and a setup made before that (setup.sh is not run again while host/bin/ld64 is there) gets them here
 mkdir -p "$XNUDEPS/hostinc/mach-o"

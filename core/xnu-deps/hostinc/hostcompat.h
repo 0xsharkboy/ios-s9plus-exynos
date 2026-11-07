@@ -16,6 +16,9 @@
 #include <unistd.h>
 extern char *program_invocation_short_name;
 static inline const char *getprogname(void) { return program_invocation_short_name; }
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__private_extern__)
+#define __private_extern__ __attribute__((visibility("hidden")))        /* clang's keyword, for a host built with gcc */
+#endif
 #ifndef __unused
 #define __unused __attribute__((unused))
 #endif
