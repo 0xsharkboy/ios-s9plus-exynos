@@ -15,7 +15,7 @@
 
 | Part | State | |
 |---|---|---|
-| display | no | UEFI's framebuffer, 1440 x 3040 at 0xCA000000 by S-Boot's command line; DECON at 0x19030000, the S9's driver not built: not seen |
+| display | partly | UEFI's framebuffer, 1440 x 3040 at 0xCA000000, seen through the loader's start; a kernel's use of it not seen; DECON at 0x19030000, the S9's driver not built |
 | cpu | no | A55s 2 and 3 (cpus=2 bootcpu=2) as a first choice: not seen |
 | touch | no | sec_ts, firmware y771_beyond2_phole, at 0x48 on HSI2C 0x104B0000, the S9's bus and address; the protocol is unconfirmed; driver not built |
 | buttons | no | driver not built |

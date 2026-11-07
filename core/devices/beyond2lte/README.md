@@ -1,6 +1,6 @@
 # Galaxy S10+ (beyond2lte, SM-G975F, Exynos 9820)
 
-**Nothing here has run on an S10+.** [`docs/beyond2lte-bringup.md`](../../docs/beyond2lte-bringup.md) has what was read from the phone and what remains open.
+**No kernel has run on an S10+ yet.** The UEFI and the loader have: [`docs/beyond2lte-bringup.md`](../../docs/beyond2lte-bringup.md) has what was read from the phone, each run, and what remains open.
 
 A HakiOS device repository: what is true of this device and of no other. The kernel, the loader, the drivers and the tools are
 the common repository's; the exynos9820 family's facts are in `soc/`, carried with the device. How the three are put together:

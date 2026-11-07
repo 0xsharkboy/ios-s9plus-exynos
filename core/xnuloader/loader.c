@@ -904,7 +904,7 @@ static const struct platform platform_crownlte = {
 static const struct platform platform_beyond2lte = {
 	/*
 	 * Samsung Galaxy S10+ (SM-G975F, beyond2lte), Exynos 9820. From the phone's own device tree and /proc/cmdline, and
-	 * Samsung's kernel for the registers (docs/beyond2lte-bringup.md). Written, not seen: nothing has run on an S10+.
+	 * Samsung's kernel for the registers (docs/beyond2lte-bringup.md). The restart, the log and the keep-outs were seen on the phone (docs/beyond2lte-bringup.md, run 3); no kernel has run here.
 	 * Not a sibling of the S9: its framebuffer tells it apart, and its PMU, reset, cores and memory all differ.
 	 */
 	.name = "beyond2lte", .io_base = 0x10000000, .io_size = 0x10000000,

@@ -162,7 +162,40 @@ How far the run got is unknown: S-Boot may not have started the image, or the sh
 
 That is `ValidateMemoryMap()` stopping in a loop on Silicium's own map, so nothing past it ran. The heap now sits above the framebuffer, at
 0xCB400000 + 0x3C00000. The shim's marks were wiped by the UEFI, as expected. USB showed `18d1:d001` named SM-G975F for 8 seconds, from
-20:13:46 to 20:13:55, which is not explained yet.
+20:13:46 to 20:13:55, which is not explained yet. With this image in BOOT the recovery key combination did not reach OrangeFox, so BOOT
+was restored from Download mode first.
+
+### 3: the same with the heap moved (7 November 2026)
+
+`beyond2lte-loader.img`, SHA-256 `5652065f...`, from `c6d96ec`, written from OrangeFox, then `adb reboot`.
+
+**The whole path works.** The phone came back to OrangeFox by itself 60 seconds after the reboot, including OrangeFox's own start, and
+`/sys/fs/pstore/pmsg-ramoops-0` held the loader's log:
+
+```
+CurrentEL=1 MIDR=411fd050 MMFR0=101122 CNTFRQ=26000000 image=a1000000
+display 1440 x 3040 at ca000000
+platform beyond2lte, GICv2
+payload: moved from f0000000 to d2000000 (16470 bytes; its region d2000000..d5ffffff, the panic log at d5f00000)
+no kernel in payload
+restart: INFORM2 4e4e0000, INFORM3 12345674 (S-Boot starts recovery); the PMU's software reset (SWRESET +3a00)
+```
+
+This establishes, on this phone:
+
+- S-Boot starts the image with no appended DTB, and the image size and text offset in its header are accepted.
+- The UEFI starts, reports the framebuffer at the address S-Boot gave, and starts the loader. The loader finds `beyond2lte` by it.
+- UEFI and the loader run at **EL1** on a Cortex-A55, with Samsung's hypervisor above them. The A55 implements the 16 KB translation
+  granule (`MMFR0` TGran16 = 1) that XNU needs. Nothing yet says whether the A75 or M4 do, or how XNU fares under the hypervisor.
+- `CNTFRQ_EL0` reads 26 MHz, so `timer_hz` is only a fallback here.
+- SWRESET at +0x3A00 with value 2, and the INFORM registers, send S-Boot to recovery. The log survives it.
+- Every keep-out was taken or already held by the firmware, with none refused. The loader's own image, at its preferred 0xA1000000, is
+  inside the `camera` range, which nothing uses while it runs.
+
+The hash of the whole BOOT partition differs from the image's because the old content remains past the image's end. The check is on the
+image's length.
+
+The next step is a kernel, which needs the Darwin toolchain.
 
 ## Where iOS can live
 
@@ -173,7 +206,6 @@ and Android and its data stay on flash, unbootable only until the saved BOOT is 
 ## Open questions
 
 1. Does XNU start and keep running under what Samsung's EL2 hypervisor leaves in place? Only a run can say.
-2. Which core does S-Boot hand over on, and which cores come when asked? The S9's answer (cores 2 and 3, not core 1) cannot be assumed.
-3. Does Project Silicium's `beyond1ltePkg` start an S10+? The framebuffer it declares matches; it has not been tried here.
-4. Where do the Mali rail's PMIC registers live on the S2MPS19, and what voltage does S-Boot leave?
-5. Is the Y771 touch controller's protocol that of `hakios.s6sy761.c`?
+2. Which cores come when asked? The boot core is an A55 (run 3); the S9's answer for the others (cores 2 and 3, not core 1) cannot be assumed.
+3. Where do the Mali rail's PMIC registers live on the S2MPS19, and what voltage does S-Boot leave?
+4. Is the Y771 touch controller's protocol that of `hakios.s6sy761.c`?
