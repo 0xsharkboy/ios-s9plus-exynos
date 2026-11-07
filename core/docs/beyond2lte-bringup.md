@@ -95,8 +95,10 @@ From the phone's `reserved-memory` and the UEFI's map. The S9's payload home, 0x
 | 0xEB308000 + 0x1F08000, 0xFD900000 + 0x2700000 | `debug_snapshot`: `log_pstore`, `log_s2d`, `log_arraydump`, and its other logs |
 | 0x880000000 + 0xAD00000, 0x9FD800000 + 0x2800000 | `sec_rdx_bootdev`, `el2_earlymem` |
 
-`log_pstore` is 0xEB308000 + 0x8000, Samsung's layout at another address than the S9's 0xFED10000. Whether OrangeFox reads it back
-after a run has not been checked. `abox-rmem` has no fixed address here (`alloc-ranges`, 0x3C00000), which matters only once audio does.
+`log_pstore` is 0xEB308000 + 0x8000, Samsung's layout at another address than the S9's 0xFED10000. A marker written to `/dev/pmsg0`
+under Android was read back in OrangeFox from `/sys/fs/pstore/pmsg-ramoops-0` after `adb reboot recovery` (7 November 2026): OrangeFox
+attaches the same range, with `record_size` and `pmsg_size` of 16 KB each, which are the halves the loader writes. That reset was
+Android's own; the loader's restart has not been seen. `abox-rmem` has no fixed address here (`alloc-ranges`, 0x3C00000), which matters only once audio does.
 
 ### The stock boot image
 
@@ -115,8 +117,9 @@ driver.
 
 ## Recovering the phone
 
-BOOT, DTB and DTBO were saved with matching SHA-256 sums to the Git-ignored `backups/beyond2lte/`. Reported key combinations with the
-phone off, not yet tried on this one: recovery is Volume Up + Bixby + Power; Download mode is Volume Down + Bixby with USB connected.
+BOOT, DTB and DTBO were saved with matching SHA-256 sums to the Git-ignored `backups/beyond2lte/`. With the phone off, Volume Up +
+Bixby + Power reaches OrangeFox on this phone (tried on 7 November 2026). Reported and not tried here: Download mode is Volume Down +
+Bixby with USB connected.
 
 ## Where iOS can live
 
