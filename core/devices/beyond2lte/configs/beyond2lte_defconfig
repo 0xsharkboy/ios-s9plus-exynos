@@ -1,0 +1,4 @@
+# HakiOS defconfig for the Galaxy S10+ (beyond2lte): the common kernel, the exynos9820 family's facts, and this device's own.
+#include common_defconfig
+#include exynos9820.config
+#include beyond2lte.config

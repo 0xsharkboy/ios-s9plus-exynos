@@ -7,6 +7,7 @@ Every device with a repository, and how far each part of it works. A device of y
 
 | Device | SoC | display | touch | buttons | cpu | gpu | storage | audio | battery | haptic | camera | torch | wifi | bluetooth | cellular | network | thermal | usb | sensors |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [Galaxy S10+](beyond2lte.md) | `exynos9820` | no | no | no | no | no | no | no | no | | no | no | no | no | no |  | no | no |  |
 | [Galaxy Note9](crownlte.md) | `exynos9810` | no | no | no | no | no | no | no | no | no | no | no | no | no | no |  | no | no |  |
 | [Pixel 10](frankel.md) | `lga` | partly | no | no | partly | no | no | no | no |  |  |  | no | no | no |  | no | no |  |
 | [QEMU virt (aarch64)](qemu.md) | `none` | yes | yes | yes |  | no | yes | yes |  |  |  |  |  |  |  | yes |  |  |  |
@@ -20,6 +21,7 @@ An empty cell is a part nobody has looked at on that device yet.
 
 | SoC | What | |
 |---|---|---|
+| `exynos9820` | Samsung Exynos 9820 (S5E9820) | carried by beyond2lte (`devices/beyond2lte/soc/`) |
 | `exynos9810` | Samsung Exynos 9810 (S5E9810) | carried by crownlte, star2lte, starlte (`devices/crownlte/soc/`) |
 | `lga` | Google Tensor G5 (laguna, "lga") | `socs/lga/` |
 | `sc7280` | Qualcomm SC7280 family (SM7325 "Snapdragon 778G", QCM6490; "yupik", "kodiak") | carried by redwood (`devices/redwood/soc/`) |
