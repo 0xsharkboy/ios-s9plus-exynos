@@ -1,0 +1,17 @@
+#!/bin/bash
+# gcc for XNU's SETUP/ host tools where clang has no Linux headers (tools/xnu-fhs.nix):
+#  - drops the macOS flags their makefiles pass, which clang ignores and gcc refuses
+#  - puts libraries after the objects, which their makefiles do not
+args=()
+libs=()
+skip=
+for a in "$@"; do
+  if [ -n "$skip" ]; then skip=; continue; fi
+  case "$a" in
+    -isysroot) skip=1 ;;
+    -mmacosx-version-min=*|-Wno-unused-command-line-argument) ;;
+    -l*) libs+=("$a") ;;
+    *) args+=("$a") ;;
+  esac
+done
+exec gcc -std=gnu11 -fpermissive -w -idirafter /usr/include "${args[@]}" "${libs[@]}"

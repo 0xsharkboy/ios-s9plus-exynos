@@ -85,6 +85,7 @@ __pycache__/
 !/xnu-deps/host/bin/
 /xnu-deps/host/bin/*
 !/xnu-deps/host/bin/codesign
+!/xnu-deps/host/bin/xnu-host-cc
 !/xnu-deps/host/bin/iig
 !/xnu-deps/host/bin/install
 !/xnu-deps/host/bin/plutil

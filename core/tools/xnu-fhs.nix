@@ -16,7 +16,7 @@ pkgs.buildFHSEnv {
   # ... and SETUP/'s host tools built with gcc, whose wrapper knows where glibc's headers are: the unwrapped clang finds none
   profile = ''
     export THEOS=''${THEOS:-$PWD/xnu-deps/theos}
-    export XNU_HOST_COMPILER="gcc -std=gnu11 -fpermissive -w -idirafter /usr/include"
+    export XNU_HOST_COMPILER=xnu-host-cc
   '';
   runScript = "bash";
 }
