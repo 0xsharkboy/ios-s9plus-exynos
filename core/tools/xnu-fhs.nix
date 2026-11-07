@@ -6,7 +6,7 @@
 pkgs.buildFHSEnv {
   name = "xnu-fhs";
   targetPkgs = p: with p; [
-    bash coreutils curl file findutils gawk git gnugrep gnumake gnused gnutar gzip rsync which xz
+    bash coreutils curl file findutils gawk git gnugrep gnumake gnused gnutar gzip patchelf rsync which xz
     # unwrapped, as for tools/mu-silicium-fhs.nix: Nix's wrapper adds flags for its own target
     llvmPackages.clang-unwrapped gcc lld llvm
     autoconf automake bc bison flex gnum4 libtool perl python3
