@@ -40,7 +40,8 @@ DEVICES = {
     'starlte': dict(fd_base=0x8F000000, gzip=False, append_dtb=False, dtb_arg=False, header_size=True),
     # (the Galaxy S10's platform, which the S10+ borrows; Silicium's toml appends a DTB, but the stock kernel has none: S-Boot
     # takes its device tree from the dtb partition, as on the S9)
-    'beyond1lte': dict(fd_base=0xC9000000, gzip=False, append_dtb=False, dtb_arg=False, header_size=True),
+    # (fb_probe: S-Boot's framebuffer, for the boot shim's marks: devices/beyond2lte/uefi/files/BootShim/BootShim.S)
+    'beyond1lte': dict(fd_base=0xC9000000, gzip=False, append_dtb=False, dtb_arg=False, header_size=True, fb_probe=0xCA000000),
     # (no UEFI: the shim is the SoC repository's, socs/lga, and starts the loader itself)
     'frankel': dict(fd_base=0, shim=os.path.join('socs', 'lga', 'shim', 'shim.bin')),
 }
@@ -135,8 +136,9 @@ if os.path.isfile(fd_path) and os.path.isdir(os.path.join(MU, 'BootShim')):
     for f in ('BootShim.elf', 'BootShim.bin'):
         try: os.unlink(os.path.join(shim_dir, f))
         except FileNotFoundError: pass
+    probe = f' -DFB_PROBE={DEV["fb_probe"]:#x}' if DEV.get('fb_probe') else ''
     subprocess.check_call(['make', 'REQUIRES_KERNEL_HEADER=1', f'FD_BASE={FD_BASE:#x}', f'FD_SIZE={FD_SIZE:#x}',
-                           f'CFLAGS=--target=aarch64-linux-gnu -DPAYLOAD_BASE={PAYLOAD_BASE:#x}'],
+                           f'CFLAGS=--target=aarch64-linux-gnu -DPAYLOAD_BASE={PAYLOAD_BASE:#x}{probe}'],
                           cwd=shim_dir, stdout=subprocess.DEVNULL)
     parts = {'shim': os.path.join(shim_dir, 'BootShim.bin'), 'fd': fd_path,
              'dtb': os.path.join(MU, f'Resources/DTBs/{TARGET}.dtb'), 'ramdisk': os.path.join(MU, 'Resources/ramdisk'),
